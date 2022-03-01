@@ -40,14 +40,14 @@ class data_transform_pred:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=self.pred_data_transform_log,
+            collection_name=self.pred_data_transform_log,
         )
 
         try:
             lst = self.s3.read_csv(
                 bucket=self.pred_data_bucket,
                 file_name=self.good_pred_data_dir,
-                table_name=self.pred_data_transform_log,
+                collection_name=self.pred_data_transform_log,
                 folder=True,
             )
 
@@ -67,8 +67,8 @@ class data_transform_pred:
                         df[column] = df[column].replace("na", "'na'")
 
                 self.log_writer.log(
-                    table_name=self.pred_data_transform_log,
-                    log_message=f"Quotes added for the file {file}",
+                    collection_name=self.pred_data_transform_log,
+                    log_info=f"Quotes added for the file {file}",
                 )
 
                 self.s3.upload_df_as_csv(
@@ -76,14 +76,14 @@ class data_transform_pred:
                     file_name=abs_f,
                     bucket=self.pred_data_bucket,
                     dest_file_name=file,
-                    table_name=self.pred_data_transform_log,
+                    collection_name=self.pred_data_transform_log,
                 )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.pred_data_transform_log,
+                collection_name=self.pred_data_transform_log,
             )
 
         except Exception as e:
@@ -91,5 +91,5 @@ class data_transform_pred:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.pred_data_transform_log,
+                collection_name=self.pred_data_transform_log,
             )

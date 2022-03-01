@@ -1,26 +1,28 @@
 from kneed import KneeLocator
 from matplotlib import pyplot as plt
-from scania.s3_bucket_operations.s3_operations import s3_operations
+from scania.blob_storage_operations.blob_operations import Blob_Operation
 from sklearn.cluster import KMeans
-from utils.logger import app_logger
+from utils.logger import App_Logger
 from utils.read_params import read_params
 
 
-class kmeans_clustering:
+class KMeans_Clustering:
     """
     Description :   This class shall  be used to divide the data into clusters before training.
     Version     :   1.2
     Revisions   :   moved to the setup to cloud
     """
 
-    def __init__(self, table_name):
-        self.table_name = table_name
+    def __init__(self, db_name, collection_name):
+        self.db_name = db_name
+
+        self.collection_name = collection_name
 
         self.config = read_params()
 
-        self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
+        self.input_files_container = self.config["container"]["input_files"]
 
-        self.model_bucket = self.config["s3_bucket"]["scania_model_bucket"]
+        self.model_container = self.config["container"]["wafer_model_container"]
 
         self.random_state = self.config["base"]["random_state"]
 
@@ -32,22 +34,24 @@ class kmeans_clustering:
 
         self.kmeans_direction = self.config["kmeans_cluster"]["knee"]["direction"]
 
-        self.s3 = s3_operations()
+        self.blob = Blob_Operation()
 
         self.elbow_plot_file = self.config["elbow_plot_fig"]
 
-        self.log_writer = app_logger()
+        self.trained_model_dir = self.config["model_dir"]["trained"]
+
+        self.log_writer = App_Logger()
 
         self.class_name = self.__class__.__name__
 
     def elbow_plot(self, data):
         """
         Method Name :   elbow_plot
-        Description :   This method saves the plot to s3 bucket and decides the optimum number of clusters to the file.
-        Output      :   A picture saved to the s3_bucket
+        Description :   This method saves the plot to blob container and decides the optimum number of clusters to the file.
+        Output      :   A picture saved to the container
         On Failure  :   Raise Exception
-        Version     :   1.0
-        Revisions   :   None
+        Version     :   1.2
+        Revisions   :   Moved to setup to cloud
         """
         method_name = self.elbow_plot.__name__
 
@@ -55,7 +59,8 @@ class kmeans_clustering:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=self.table_name,
+            db_name=self.db_name,
+            collection_name=self.collection_name,
         )
 
         wcss = []
@@ -81,15 +86,17 @@ class kmeans_clustering:
             plt.savefig(self.elbow_plot_file)
 
             self.log_writer.log(
-                table_name=self.table_name,
-                log_message="Saved elbow_plot fig and local copy is created",
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_info="Saved elbow_plot fig and local copy is created",
             )
 
-            self.s3.upload_file(
-                src_file=self.elbow_plot_file,
-                bucket=self.input_files_bucket,
-                dest_file=self.elbow_plot_file,
-                table_name=self.table_name,
+            self.blob.upload_file(
+                local_file_name=self.elbow_plot_file,
+                container_file_name=self.elbow_plot_file,
+                container_name=self.input_files_container,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             self.kn = KneeLocator(
@@ -100,15 +107,17 @@ class kmeans_clustering:
             )
 
             self.log_writer.log(
-                table_name=self.table_name,
-                log_message=f"The optimum number of clusters is {str(self.kn.knee)}.",
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_info=f"The optimum number of clusters is {str(self.kn.knee)}.",
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.table_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             return self.kn.knee
@@ -118,7 +127,8 @@ class kmeans_clustering:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.table_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
     def create_clusters(self, data, number_of_clusters):
@@ -127,8 +137,8 @@ class kmeans_clustering:
         Description :   Create a new dataframe consisting of the cluster information.
         Output      :   A datframe with cluster column
         On Failure  :   Raise Exception
-        Version     :   1.0
-        Revisions   :   None
+        Version     :   1.2
+        Revisions   :   Moved to setup to cloud
         """
         method_name = self.create_clusters.__name__
 
@@ -136,7 +146,8 @@ class kmeans_clustering:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=self.table_name,
+            db_name=self.db_name,
+            collection_name=self.collection_name,
         )
 
         self.data = data
@@ -150,25 +161,28 @@ class kmeans_clustering:
 
             self.y_kmeans = self.kmeans.fit_predict(data)
 
-            self.s3.save_model(
-                idx=None,
+            self.blob.save_model(
                 model=self.kmeans,
-                model_bucket=self.model_bucket,
-                table_name=self.table_name,
+                model_dir=self.trained_model_dir,
+                container_name=self.model_container,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             self.data["Cluster"] = self.y_kmeans
 
             self.log_writer.log(
-                table_name=self.table_name,
-                log_message=f"Successfully created {str(self.kn.knee)} clusters",
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_info=f"Successfully created {str(self.kn.knee)} clusters",
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.table_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             return self.data, self.kmeans
@@ -178,5 +192,6 @@ class kmeans_clustering:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.table_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )

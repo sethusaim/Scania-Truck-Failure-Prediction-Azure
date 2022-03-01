@@ -41,15 +41,17 @@ class train_model:
 
         self.class_name = self.__class__.__name__
 
-        self.mlflow_op = mlflow_operations(table_name=self.model_train_log)
+        self.mlflow_op = mlflow_operations(collection_name=self.model_train_log)
 
-        self.data_getter_train_obj = data_getter_train(table_name=self.model_train_log)
+        self.data_getter_train_obj = data_getter_train(
+            collection_name=self.model_train_log
+        )
 
-        self.preprocessor_obj = preprocessor(table_name=self.model_train_log)
+        self.preprocessor_obj = preprocessor(collection_name=self.model_train_log)
 
-        self.kmeans_obj = kmeans_clustering(table_name=self.model_train_log)
+        self.kmeans_obj = kmeans_clustering(collection_name=self.model_train_log)
 
-        self.model_finder_obj = model_finder(table_name=self.model_train_log)
+        self.model_finder_obj = model_finder(collection_name=self.model_train_log)
 
         self.s3 = s3_operations()
 
@@ -68,7 +70,7 @@ class train_model:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=self.model_train_log,
+            collection_name=self.model_train_log,
         )
 
         try:
@@ -108,8 +110,8 @@ class train_model:
             list_of_clusters = X["Cluster"].unique()
 
             self.log_writer.log(
-                table_name=self.model_train_log,
-                log_message="Got unique list of clusters",
+                collection_name=self.model_train_log,
+                log_info="Got unique list of clusters",
             )
 
             for i in list_of_clusters:
@@ -120,8 +122,8 @@ class train_model:
                 cluster_label = cluster_data["Labels"]
 
                 self.log_writer.log(
-                    table_name=self.model_train_log,
-                    log_message="Seprated cluster features and cluster label for the cluster data",
+                    collection_name=self.model_train_log,
+                    log_info="Seprated cluster features and cluster label for the cluster data",
                 )
 
                 x_train, x_test, y_train, y_test = train_test_split(
@@ -132,8 +134,8 @@ class train_model:
                 )
 
                 self.log_writer.log(
-                    table_name=self.model_train_log,
-                    log_message=f"Performed train test split with test size as {self.test_size} and random state as {self.random_state}",
+                    collection_name=self.model_train_log,
+                    log_info=f"Performed train test split with test size as {self.test_size} and random state as {self.random_state}",
                 )
 
                 (
@@ -149,14 +151,14 @@ class train_model:
                     idx=i,
                     model=ada_model,
                     model_bucket=self.model_bucket,
-                    table_name=self.model_train_log,
+                    collection_name=self.model_train_log,
                 )
 
                 self.s3.save_model(
                     idx=i,
                     model=rf_model,
                     model_bucket=self.model_bucket,
-                    table_name=self.model_train_log,
+                    collection_name=self.model_train_log,
                 )
 
                 try:
@@ -168,7 +170,7 @@ class train_model:
 
                     with mlflow.start_run(run_name=self.run_name):
                         kmeans_model_name = get_model_name(
-                            model=kmeans_model, table_name=self.model_train_log
+                            model=kmeans_model, collection_name=self.model_train_log
                         )
 
                         self.mlflow_op.log_model(
@@ -191,40 +193,40 @@ class train_model:
 
                 except Exception as e:
                     self.log_writer.log(
-                        table_name=self.model_train_log,
-                        log_message="Mlflow logging of params,metrics and models failed",
+                        collection_name=self.model_train_log,
+                        log_info="Mlflow logging of params,metrics and models failed",
                     )
 
                     self.log_writer.exception_log(
                         error=e,
                         class_name=self.class_name,
                         method_name=method_name,
-                        table_name=self.model_train_log,
+                        collection_name=self.model_train_log,
                     )
 
             self.log_writer.log(
-                table_name=self.model_train_log,
-                log_message="Successful End of Training",
+                collection_name=self.model_train_log,
+                log_info="Successful End of Training",
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.model_train_log,
+                collection_name=self.model_train_log,
             )
 
             return number_of_clusters
 
         except Exception as e:
             self.log_writer.log(
-                table_name=self.model_train_log,
-                log_message="Unsuccessful End of Training",
+                collection_name=self.model_train_log,
+                log_info="Unsuccessful End of Training",
             )
 
             self.log_writer.exception_log(
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.model_train_log,
+                collection_name=self.model_train_log,
             )

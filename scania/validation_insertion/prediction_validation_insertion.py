@@ -48,7 +48,7 @@ class Pred_Validation:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=self.pred_main_log,
+            collection_name=self.pred_main_log,
         )
 
         try:
@@ -70,42 +70,42 @@ class Pred_Validation:
             self.raw_data.validate_missing_values_in_col()
 
             self.log_writer.log(
-                table_name=self.pred_main_log,
-                log_message="Raw Data Validation Completed !!",
+                collection_name=self.pred_main_log,
+                log_info="Raw Data Validation Completed !!",
             )
 
             self.log_writer.log(
-                table_name=self.pred_main_log,
-                log_message="Starting Data Transformation",
+                collection_name=self.pred_main_log,
+                log_info="Starting Data Transformation",
             )
 
             self.data_transform.add_quotes_to_string()
 
             self.log_writer.log(
-                table_name=self.pred_main_log,
-                log_message="Data Transformation completed !!",
+                collection_name=self.pred_main_log,
+                log_info="Data Transformation completed !!",
             )
 
             self.db_operation.insert_good_data_as_record(
                 db_name=self.good_data_db_name,
-                table_name=self.good_data_collection_name,
+                collection_name=self.good_data_collection_name,
             )
 
             self.log_writer.log(
-                table_name=self.pred_main_log,
-                log_message="Data type validation Operation completed !!",
+                collection_name=self.pred_main_log,
+                log_info="Data type validation Operation completed !!",
             )
 
             self.db_operation.export_collection_to_csv(
                 db_name=self.good_data_db_name,
-                table_name=self.good_data_collection_name,
+                collection_name=self.good_data_collection_name,
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.pred_main_log,
+                collection_name=self.pred_main_log,
             )
 
         except Exception as e:
@@ -113,5 +113,5 @@ class Pred_Validation:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.pred_main_log,
+                collection_name=self.pred_main_log,
             )

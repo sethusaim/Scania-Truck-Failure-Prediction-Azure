@@ -31,9 +31,9 @@ class Prediction:
 
         self.s3 = s3_operations()
 
-        self.data_getter_pred = data_getter_pred(table_name=self.pred_log)
+        self.data_getter_pred = data_getter_pred(collection_name=self.pred_log)
 
-        self.preprocessor = preprocessor(table_name=self.pred_log)
+        self.preprocessor = preprocessor(collection_name=self.pred_log)
 
         self.class_name = self.__class__.__name__
 
@@ -51,11 +51,11 @@ class Prediction:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=self.pred_log,
+            collection_name=self.pred_log,
         )
 
         try:
-            self.s3.delete_pred_file(table_name=self.pred_log)
+            self.s3.delete_pred_file(collection_name=self.pred_log)
 
             data = self.data_getter_pred.get_data()
 
@@ -81,7 +81,7 @@ class Prediction:
             kmeans_model = self.s3.load_model(
                 bucket=self.model_bucket,
                 model_name=kmeans_model_name,
-                table_name=self.pred_log,
+                collection_name=self.pred_log,
             )
 
             clusters = kmeans_model.predict(data)
@@ -98,7 +98,7 @@ class Prediction:
                 model_name = self.s3.find_correct_model_file(
                     cluster_number=i,
                     bucket_name=self.model_bucket,
-                    table_name=self.pred_log,
+                    collection_name=self.pred_log,
                 )
 
                 prod_model_name = self.prod_model_dir + "/" + model_name
@@ -106,7 +106,7 @@ class Prediction:
                 model = self.s3.load_model(
                     bucket=self.model_bucket,
                     model_name=prod_model_name,
-                    table_name=self.pred_log,
+                    collection_name=self.pred_log,
                 )
 
                 result = list(model.predict(cluster_data))
@@ -120,18 +120,18 @@ class Prediction:
                     file_name=self.pred_output_file,
                     bucket=self.input_files_bucket,
                     dest_file_name=self.pred_output_file,
-                    table_name=self.pred_log,
+                    collection_name=self.pred_log,
                 )
 
             self.log_writer.log(
-                table_name=self.pred_log, log_message="End of Prediction"
+                collection_name=self.pred_log, log_info="End of Prediction"
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.pred_log,
+                collection_name=self.pred_log,
             )
 
             return (
@@ -145,5 +145,5 @@ class Prediction:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.pred_log,
+                collection_name=self.pred_log,
             )
