@@ -1,5 +1,5 @@
 from scania.mongo_db_operations.mongo_operations import mongodb_operations
-from scania.s3_bucket_operations.s3_operations import s3_operations
+from scania.s3_bucket_operations.blob_operation import blob_operation
 from utils.logger import app_logger
 from utils.read_params import read_params
 
@@ -29,7 +29,7 @@ class db_operation_train:
 
         self.train_export_csv_log = self.config["train_db_log"]["export_csv"]
 
-        self.s3 = s3_operations()
+        self.blob = blob_operation()
 
         self.db_op = mongodb_operations()
 
@@ -53,7 +53,7 @@ class db_operation_train:
         )
 
         try:
-            lst = self.s3.read_csv(
+            lst = self.blob.read_csv(
                 bucket=self.train_data_bucket,
                 file_name=self.good_data_train_dir,
                 collection_name=self.train_db_insert_log,
@@ -120,7 +120,7 @@ class db_operation_train:
                 collection_name=self.train_export_csv_log,
             )
 
-            self.s3.upload_df_as_csv(
+            self.blob.upload_df_as_csv(
                 data_frame=df,
                 file_name=self.train_export_csv_file,
                 bucket=self.input_files_bucket,

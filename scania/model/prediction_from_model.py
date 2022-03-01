@@ -1,7 +1,7 @@
 import pandas as pd
 from scania.data_ingestion.data_loader_Prediction import data_getter_pred
 from scania.data_preprocessing.preprocessing import preprocessor
-from scania.s3_bucket_operations.s3_operations import s3_operations
+from scania.s3_bucket_operations.blob_operation import blob_operation
 from utils.logger import app_logger
 from utils.read_params import read_params
 
@@ -29,7 +29,7 @@ class Prediction:
 
         self.log_writer = app_logger()
 
-        self.s3 = s3_operations()
+        self.blob = blob_operation()
 
         self.data_getter_pred = data_getter_pred(collection_name=self.pred_log)
 
@@ -40,7 +40,7 @@ class Prediction:
     def predict_from_model(self):
         """
         Method Name :   predict_from_model
-        Description :   This method is used for loading from prod model dir of s3 bucket and use them for Prediction
+        Description :   This method is used for loading from prod model dir of blob bucket and use them for Prediction
 
         Version     :   1.2
         Revisions   :   moved setup to cloud
@@ -55,7 +55,7 @@ class Prediction:
         )
 
         try:
-            self.s3.delete_pred_file(collection_name=self.pred_log)
+            self.blob.delete_pred_file(collection_name=self.pred_log)
 
             data = self.data_getter_pred.get_data()
 
@@ -78,7 +78,7 @@ class Prediction:
 
             kmeans_model_name = self.prod_model_dir + "/" + "KMeans"
 
-            kmeans_model = self.s3.load_model(
+            kmeans_model = self.blob.load_model(
                 bucket=self.model_bucket,
                 model_name=kmeans_model_name,
                 collection_name=self.pred_log,
@@ -95,7 +95,7 @@ class Prediction:
 
                 cluster_data = cluster_data.drop(["clusters"], axis=1)
 
-                model_name = self.s3.find_correct_model_file(
+                model_name = self.blob.find_correct_model_file(
                     cluster_number=i,
                     bucket_name=self.model_bucket,
                     collection_name=self.pred_log,
@@ -103,7 +103,7 @@ class Prediction:
 
                 prod_model_name = self.prod_model_dir + "/" + model_name
 
-                model = self.s3.load_model(
+                model = self.blob.load_model(
                     bucket=self.model_bucket,
                     model_name=prod_model_name,
                     collection_name=self.pred_log,
@@ -115,7 +115,7 @@ class Prediction:
 
                 result["Predictions"] = result["Predictions"].map({0: "neg", 1: "pos"})
 
-                self.s3.upload_df_as_csv(
+                self.blob.upload_df_as_csv(
                     data_frame=result,
                     file_name=self.pred_output_file,
                     bucket=self.input_files_bucket,

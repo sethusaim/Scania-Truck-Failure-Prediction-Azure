@@ -4,7 +4,7 @@ from scania.data_preprocessing.clustering import kmeans_clustering
 from scania.data_preprocessing.preprocessing import preprocessor
 from scania.mlflow_utils.mlflow_operations import mlflow_operations
 from scania.model_finder.tuner import model_finder
-from scania.s3_bucket_operations.s3_operations import s3_operations
+from scania.s3_bucket_operations.blob_operation import blob_operation
 from sklearn.model_selection import train_test_split
 from utils.logger import app_logger
 from utils.model_utils import get_model_name
@@ -53,7 +53,7 @@ class train_model:
 
         self.model_finder_obj = model_finder(collection_name=self.model_train_log)
 
-        self.s3 = s3_operations()
+        self.blob = blob_operation()
 
     def training_model(self):
         """
@@ -147,14 +147,14 @@ class train_model:
                     train_x=x_train, train_y=y_train, test_x=x_test, test_y=y_test
                 )
 
-                self.s3.save_model(
+                self.blob.save_model(
                     idx=i,
                     model=ada_model,
                     model_bucket=self.model_bucket,
                     collection_name=self.model_train_log,
                 )
 
-                self.s3.save_model(
+                self.blob.save_model(
                     idx=i,
                     model=rf_model,
                     model_bucket=self.model_bucket,
