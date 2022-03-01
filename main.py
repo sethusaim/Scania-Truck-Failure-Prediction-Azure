@@ -46,7 +46,7 @@ async def index(request: Request):
 @app.get("/train")
 async def trainRouteClient():
     try:
-        raw_data_train_bucket_name = config["s3_bucket"]["scania_raw_data_bucket"]
+        raw_data_train_container_name = config["container"]["scania_raw_data_container"]
 
         table_obj = create_log_table()
 
@@ -54,7 +54,7 @@ async def trainRouteClient():
 
         time.sleep(5)
 
-        train_val_obj = Train_Validation(bucket_name=raw_data_train_bucket_name)
+        train_val_obj = Train_Validation(container_name=raw_data_train_container_name)
 
         train_val_obj.training_validation()
 
@@ -75,22 +75,22 @@ async def trainRouteClient():
 @app.get("/predict")
 async def predictRouteClient():
     try:
-        raw_data_pred_bucket_name = config["s3_bucket"]["scania_raw_data_bucket"]
+        raw_data_pred_container_name = config["container"]["scania_raw_data_container"]
 
         table_obj = create_log_table()
 
         table_obj.generate_log_tables(type="pred")
 
-        pred_val = Pred_Validation(raw_data_pred_bucket_name)
+        pred_val = Pred_Validation(raw_data_pred_container_name)
 
         pred_val.Prediction_validation()
 
         pred = Prediction()
 
-        bucket, filename, json_Predictions = pred.predict_from_model()
+        container, filename, json_Predictions = pred.predict_from_model()
 
         return Response(
-            f"Prediction file created in {bucket} bucket with filename as {filename}, and few of the Predictions are {str(json.loads(json_Predictions))}"
+            f"Prediction file created in {container} container with filename as {filename}, and few of the Predictions are {str(json.loads(json_Predictions))}"
         )
 
     except Exception as e:

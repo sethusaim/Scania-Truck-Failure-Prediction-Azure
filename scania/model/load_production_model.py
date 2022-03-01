@@ -20,7 +20,7 @@ class Load_Prod_Model:
 
         self.num_clusters = num_clusters
 
-        self.model_bucket = self.config["s3_bucket"]["scania_model_bucket"]
+        self.model_container = self.config["container"]["scania_model_container"]
 
         self.Load_Prod_Model_log = self.config["train_db_log"]["Load_Prod_Model"]
 
@@ -159,7 +159,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             model_version=mv.version,
                             stage="Production",
                             model_name=mv.name,
-                            bucket=self.model_bucket,
+                            container=self.model_container,
                         )
 
                     ## In the registered models, even kmeans model is present, so during Prediction,
@@ -170,7 +170,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             model_version=mv.version,
                             stage="Production",
                             model_name=mv.name,
-                            bucket=self.model_bucket,
+                            container=self.model_container,
                         )
 
                     else:
@@ -178,7 +178,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             model_version=mv.version,
                             stage="Staging",
                             model_name=mv.name,
-                            bucket=self.model_bucket,
+                            container=self.model_container,
                         )
 
             self.log_writer.log(

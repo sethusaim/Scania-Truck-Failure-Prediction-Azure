@@ -1,5 +1,5 @@
 from scania.mongo_db_operations.mongo_operations import mongodb_operations
-from scania.s3_bucket_operations.blob_operation import blob_operation
+from scania.container_operations.blob_operation import blob_operation
 from utils.logger import app_logger
 from utils.read_params import read_params
 
@@ -17,13 +17,13 @@ class db_operation_pred:
 
         self.class_name = self.__class__.__name__
 
-        self.pred_data_bucket = self.config["s3_bucket"]["scania_pred_data_bucket"]
+        self.pred_data_container = self.config["container"]["scania_pred_data_container"]
 
         self.pred_export_csv_file = self.config["export_pred_csv_file"]
 
         self.good_data_pred_dir = self.config["data"]["pred"]["good_data_dir"]
 
-        self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
+        self.input_files_container = self.config["container"]["input_files_container"]
 
         self.pred_db_insert_log = self.config["pred_db_log"]["db_insert"]
 
@@ -54,7 +54,7 @@ class db_operation_pred:
 
         try:
             lst = self.blob.read_csv(
-                bucket=self.pred_data_bucket,
+                container=self.pred_data_container,
                 file_name=self.good_data_pred_dir,
                 collection_name=self.pred_db_insert_log,
                 folder=True,
@@ -123,7 +123,7 @@ class db_operation_pred:
             self.blob.upload_df_as_csv(
                 data_frame=df,
                 file_name=self.pred_export_csv_file,
-                bucket=self.input_files_bucket,
+                container=self.input_files_container,
                 dest_file_name=self.pred_export_csv_file,
                 collection_name=self.pred_export_csv_log,
             )

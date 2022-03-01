@@ -39,13 +39,13 @@ kmeans_cluster:
 pca_model:
   n_components: 100
 
-s3_bucket:
-  input_files_bucket: input-files-for-train-and-pred
-  scania_model_bucket: scania-model
-  scania-mlflow_bucket: scania-mlflow
-  scania_pred_data_bucket: scania-pred-data
-  scania_train_data_bucket: scania-train-data
-  scania_raw_data_bucket: scania-raw-data
+container:
+  input_files_container: input-files-for-train-and-pred
+  scania_model_container: scania-model
+  scania-mlflow_container: scania-mlflow
+  scania_pred_data_container: scania-pred-data
+  scania_train_data_container: scania-train-data
+  scania_raw_data_container: scania-raw-data
 
 models_dir:
   trained : trained

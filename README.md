@@ -118,7 +118,7 @@ The Prediction pipeline will be triggered following Prediction validation and Pr
 - MlFlow
 - MongoDB
 - ECR and ECS
-- S3 buckets
+- BLOB containers
 
 ### Algorithms Used 
 - Random Forest 

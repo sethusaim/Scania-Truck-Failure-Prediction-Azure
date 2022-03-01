@@ -13,8 +13,8 @@ class Pred_Validation:
     Revisions   :   moved to setup to cloud
     """
 
-    def __init__(self, bucket_name):
-        self.raw_data = raw_pred_data_validation(raw_data_bucket_name=bucket_name)
+    def __init__(self, container_name):
+        self.raw_data = raw_pred_data_validation(raw_data_container_name=container_name)
 
         self.data_transform = data_transform_pred()
 
@@ -36,7 +36,7 @@ class Pred_Validation:
 
     def Prediction_validation(self):
         """
-        Method Name :   load_s3_obj
+        Method Name :   load_blob_obj
         Description :   This method is used for validating the Prediction btach files
 
         Version     :   1.2

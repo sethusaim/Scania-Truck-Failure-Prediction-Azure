@@ -1,7 +1,7 @@
 import pandas as pd
 from scania.data_ingestion.data_loader_Prediction import data_getter_pred
 from scania.data_preprocessing.preprocessing import preprocessor
-from scania.s3_bucket_operations.blob_operation import blob_operation
+from scania.container_operations.blob_operation import blob_operation
 from utils.logger import app_logger
 from utils.read_params import read_params
 
@@ -19,9 +19,9 @@ class Prediction:
 
         self.pred_log = self.config["pred_db_log"]["pred_main"]
 
-        self.model_bucket = self.config["s3_bucket"]["scania_model_bucket"]
+        self.model_container = self.config["container"]["scania_model_container"]
 
-        self.input_files_bucket = self.config["s3_bucket"]["inputs_files_bucket"]
+        self.input_files_container = self.config["container"]["inputs_files_container"]
 
         self.prod_model_dir = self.config["models_dir"]["prod"]
 
@@ -40,7 +40,7 @@ class Prediction:
     def predict_from_model(self):
         """
         Method Name :   predict_from_model
-        Description :   This method is used for loading from prod model dir of blob bucket and use them for Prediction
+        Description :   This method is used for loading from prod model dir of blob container and use them for Prediction
 
         Version     :   1.2
         Revisions   :   moved setup to cloud
@@ -79,7 +79,7 @@ class Prediction:
             kmeans_model_name = self.prod_model_dir + "/" + "KMeans"
 
             kmeans_model = self.blob.load_model(
-                bucket=self.model_bucket,
+                container=self.model_container,
                 model_name=kmeans_model_name,
                 collection_name=self.pred_log,
             )
@@ -97,14 +97,14 @@ class Prediction:
 
                 model_name = self.blob.find_correct_model_file(
                     cluster_number=i,
-                    bucket_name=self.model_bucket,
+                    container_name=self.model_container,
                     collection_name=self.pred_log,
                 )
 
                 prod_model_name = self.prod_model_dir + "/" + model_name
 
                 model = self.blob.load_model(
-                    bucket=self.model_bucket,
+                    container=self.model_container,
                     model_name=prod_model_name,
                     collection_name=self.pred_log,
                 )
@@ -118,7 +118,7 @@ class Prediction:
                 self.blob.upload_df_as_csv(
                     data_frame=result,
                     file_name=self.pred_output_file,
-                    bucket=self.input_files_bucket,
+                    container=self.input_files_container,
                     dest_file_name=self.pred_output_file,
                     collection_name=self.pred_log,
                 )
@@ -135,7 +135,7 @@ class Prediction:
             )
 
             return (
-                self.input_files_bucket,
+                self.input_files_container,
                 self.pred_output_file,
                 result.head().to_json(orient="records"),
             )

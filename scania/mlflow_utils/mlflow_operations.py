@@ -2,7 +2,7 @@ import os
 
 import mlflow
 from mlflow.tracking import MlflowClient
-from scania.s3_bucket_operations.blob_operation import blob_operation
+from scania.container_operations.blob_operation import blob_operation
 from utils.logger import app_logger
 from utils.model_utils import get_model_name
 from utils.read_params import read_params
@@ -570,10 +570,10 @@ class mlflow_operations:
                 collection_name=self.collection_name,
             )
 
-    def transition_mlflow_model(self, model_version, stage, model_name, bucket):
+    def transition_mlflow_model(self, model_version, stage, model_name, container):
         """
         Method Name :   transition_mlflow_model
-        Description :   This method transitions the models in mlflow and as well as in blob bucket based on
+        Description :   This method transitions the models in mlflow and as well as in blob container based on
                         the best model for the particular cluster
 
         Version     :   1.2
@@ -629,9 +629,9 @@ class mlflow_operations:
                 )
 
                 self.blob.copy_data(
-                    src_bucket=bucket,
+                    src_container=container,
                     src_file=trained_model_file,
-                    dest_bucket=bucket,
+                    dest_container=container,
                     dest_file=prod_model_file,
                     collection_name=self.collection_name,
                 )
@@ -652,9 +652,9 @@ class mlflow_operations:
                 )
 
                 self.blob.copy_data(
-                    src_bucket=bucket,
+                    src_container=container,
                     src_file=trained_model_file,
-                    dest_bucket=bucket,
+                    dest_container=container,
                     dest_file=stag_model_file,
                     collection_name=self.collection_name,
                 )

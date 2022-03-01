@@ -1,4 +1,4 @@
-from scania.s3_bucket_operations.blob_operation import blob_operation
+from scania.container_operations.blob_operation import blob_operation
 from utils.logger import app_logger
 from utils.read_params import read_params
 
@@ -14,7 +14,9 @@ class data_transform_train:
     def __init__(self):
         self.config = read_params()
 
-        self.train_data_bucket = self.config["s3_bucket"]["scania_train_data_bucket"]
+        self.train_data_container = self.config["container"][
+            "scania_train_data_container"
+        ]
 
         self.blob = blob_operation()
 
@@ -45,7 +47,7 @@ class data_transform_train:
 
         try:
             lst = self.blob.read_csv(
-                bucket=self.train_data_bucket,
+                container=self.train_data_container,
                 file_name=self.good_train_data_dir,
                 collection_name=self.train_data_transform_log,
                 folder=True,
@@ -74,7 +76,7 @@ class data_transform_train:
                 self.blob.upload_df_as_csv(
                     data_frame=df,
                     file_name=abs_f,
-                    bucket=self.train_data_bucket,
+                    container=self.train_data_container,
                     dest_file_name=file,
                     collection_name=self.train_data_transform_log,
                 )

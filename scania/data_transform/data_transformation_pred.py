@@ -14,7 +14,9 @@ class data_transform_pred:
     def __init__(self):
         self.config = read_params()
 
-        self.pred_data_bucket = self.config["s3_bucket"]["scania_pred_data_bucket"]
+        self.db_name = self.config["db_log"]["pred"]
+
+        self.pred_data_container = self.config["container"]["scania_pred_data"]
 
         self.blob = Blob_Operation()
 
@@ -40,13 +42,15 @@ class data_transform_pred:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.pred_data_transform_log,
         )
 
         try:
             lst = self.blob.read_csv(
-                bucket=self.pred_data_bucket,
+                container=self.pred_data_container,
                 file_name=self.good_pred_data_dir,
+                db_name=self.db_name,
                 collection_name=self.pred_data_transform_log,
                 folder=True,
             )
@@ -67,6 +71,7 @@ class data_transform_pred:
                         df[column] = df[column].replace("na", "'na'")
 
                 self.log_writer.log(
+                    db_name=self.db_name,
                     collection_name=self.pred_data_transform_log,
                     log_info=f"Quotes added for the file {file}",
                 )
@@ -74,8 +79,9 @@ class data_transform_pred:
                 self.blob.upload_df_as_csv(
                     data_frame=df,
                     file_name=abs_f,
-                    bucket=self.pred_data_bucket,
+                    container=self.pred_data_container,
                     dest_file_name=file,
+                    db_name=self.db_name,
                     collection_name=self.pred_data_transform_log,
                 )
 
@@ -83,6 +89,7 @@ class data_transform_pred:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_data_transform_log,
             )
 
@@ -91,5 +98,6 @@ class data_transform_pred:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_data_transform_log,
             )
