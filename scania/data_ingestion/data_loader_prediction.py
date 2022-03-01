@@ -5,7 +5,7 @@ from utils.read_params import read_params
 
 class data_getter_pred:
     """
-    Description :   This class shall be used for obtaining the df from the source for prediction
+    Description :   This class shall be used for obtaining the df from the source for Prediction
     Version     :   1.2
     Revisions   :   Moved to setup to cloud run setup
     """
@@ -15,7 +15,7 @@ class data_getter_pred:
 
         self.table_name = table_name
 
-        self.prediction_file = self.config["export_csv_file"]["pred"]
+        self.Prediction_file = self.config["export_csv_file"]["pred"]
 
         self.input_files_bucket = self.config["s3_bucket"]["input_files_bucket"]
 
@@ -47,7 +47,7 @@ class data_getter_pred:
         try:
             df = self.s3.read_csv(
                 bucket=self.input_files_bucket,
-                file_name=self.prediction_file,
+                file_name=self.Prediction_file,
                 table_name=self.table_name,
             )
 

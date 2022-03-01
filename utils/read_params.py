@@ -3,15 +3,13 @@ import yaml
 
 def read_params(config_path="params.yaml"):
     """
-    Method Name :   starread_paramst_log
+    Method Name :   read_params
     Description :   This method is used for read the params from yaml file
 
-    Version     :   1.0
-    Revisions   :   None
+    Version     :   1.2
+    Revisions   :   Moved to setup to cloud
     """
     method_name = read_params.__name__
-
-    file_name = __file__
 
     try:
         with open(config_path) as f:
@@ -21,5 +19,5 @@ def read_params(config_path="params.yaml"):
 
     except Exception as e:
         raise Exception(
-            f"Exception occured in {file_name}, Method : {method_name}, Error : {str(e)}"
+            f"Exception occured in {__file__}, Method : {method_name}, Error : {str(e)}"
         )

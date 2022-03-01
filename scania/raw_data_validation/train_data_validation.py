@@ -92,7 +92,8 @@ class raw_train_data_validation:
             )
 
             self.log_writer.log(
-                table_name=self.train_schema_log, log_message=message,
+                table_name=self.train_schema_log,
+                log_message=message,
             )
 
             self.log_writer.start_log(
@@ -142,7 +143,8 @@ class raw_train_data_validation:
             )
 
             self.log_writer.log(
-                table_name=self.train_gen_log, log_message=f"Got {regex} pattern",
+                table_name=self.train_gen_log,
+                log_message=f"Got {regex} pattern",
             )
 
             self.log_writer.start_log(

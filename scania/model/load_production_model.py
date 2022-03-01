@@ -3,7 +3,7 @@ from utils.logger import app_logger
 from utils.read_params import read_params
 
 
-class load_prod_model:
+class Load_Prod_Model:
     """
     Description :   This class shall be used for loading the production model
     Written by  :   iNeuron Intelligence
@@ -22,11 +22,11 @@ class load_prod_model:
 
         self.model_bucket = self.config["s3_bucket"]["scania_model_bucket"]
 
-        self.load_prod_model_log = self.config["train_db_log"]["load_prod_model"]
+        self.Load_Prod_Model_log = self.config["train_db_log"]["Load_Prod_Model"]
 
         self.exp_name = self.config["mlflow_config"]["experiment_name"]
 
-        self.mlflow_op = mlflow_operations(table_name=self.load_prod_model_log)
+        self.mlflow_op = mlflow_operations(table_name=self.Load_Prod_Model_log)
 
     def load_production_model(self):
         """
@@ -43,7 +43,7 @@ class load_prod_model:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            table_name=self.load_prod_model_log,
+            table_name=self.Load_Prod_Model_log,
         )
 
         try:
@@ -72,21 +72,21 @@ class load_prod_model:
             ]
 
             self.log_writer.log(
-                table_name=self.load_prod_model_log,
+                table_name=self.Load_Prod_Model_log,
                 log_message="Created cols for all registered model",
             )
 
             runs_cols = runs[cols].max().sort_values(ascending=False)
 
             self.log_writer.log(
-                table_name=self.load_prod_model_log,
+                table_name=self.Load_Prod_Model_log,
                 log_message="Sorted the runs cols in descending order",
             )
 
             metrics_dict = runs_cols.to_dict()
 
             self.log_writer.log(
-                table_name=self.load_prod_model_log,
+                table_name=self.Load_Prod_Model_log,
                 log_message="Converted runs cols to dict",
             )
 
@@ -127,7 +127,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             ]
 
             self.log_writer.log(
-                table_name=self.load_prod_model_log,
+                table_name=self.Load_Prod_Model_log,
                 log_message=f"Got top model names based on the metrics of clusters",
             )
 
@@ -141,7 +141,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             top_mn_lst = [mn.split(".")[1].split("-")[0] for mn in best_metrics_names]
 
             self.log_writer.log(
-                table_name=self.load_prod_model_log,
+                table_name=self.Load_Prod_Model_log,
                 log_message=f"Got the top model names",
             )
 
@@ -162,7 +162,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             bucket=self.model_bucket,
                         )
 
-                    ## In the registered models, even kmeans model is present, so during prediction,
+                    ## In the registered models, even kmeans model is present, so during Prediction,
                     ## this model also needs to be in present in production, the code logic is present below
 
                     elif mv.name == "KMeans":
@@ -182,7 +182,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                         )
 
             self.log_writer.log(
-                table_name=self.load_prod_model_log,
+                table_name=self.Load_Prod_Model_log,
                 log_message="Transitioning of models based on scores successfully done",
             )
 
@@ -190,7 +190,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.load_prod_model_log,
+                table_name=self.Load_Prod_Model_log,
             )
 
         except Exception as e:
@@ -198,5 +198,5 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                table_name=self.load_prod_model_log,
+                table_name=self.Load_Prod_Model_log,
             )

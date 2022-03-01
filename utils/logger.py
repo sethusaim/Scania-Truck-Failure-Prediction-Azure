@@ -1,57 +1,32 @@
 from datetime import datetime
-import boto3
+from scania.mongo_db_operations.mongo_operations import MongoDB_Operation
 
 
-class app_logger:
-    """
-    Description :   This class is used for logging the info to MongoDB
-
-    Version     :   1.2
-    Revisions   :   moved to setup to cloud
-    """
-
+class App_Logger:
     def __init__(self):
-        self.db_resource = boto3.resource("dynamodb")
+        self.mongo = MongoDB_Operation()
 
         self.class_name = self.__class__.__name__
 
-    def log(self, table_name, log_message):
-        """
-        Method Name :   log
-        Description :   This method is used for log the info to MongoDB
-
-        Version     :   1.2
-        Revisions   :   moved setup to cloud
-        """
-        method_name = self.log.__name__
-
+    def log(self, db_name, collection_name, log_info):
         try:
-            self.table = self.db_resource.Table(table_name)
-
-            self.now = datetime.now()
-
-            self.date = self.now.date()
-
-            self.current_time = self.now.strftime("%H:%M:%S")
-
             log = {
-                "Log_updated_date": str(self.now),
-                "Log_updated_time": str(self.current_time),
-                "Log_message": log_message,
+                "Log_updated_date": str(datetime.now()),
+                "Log_updated_time": str(datetime.now().strftime("%H:%M:%S")),
+                "Log_Info": log_info,
             }
 
-            self.table.put_item(Item=log)
+            self.mongo.insert_record(
+                db_name=db_name, collection_name=collection_name, data=log
+            )
 
         except Exception as e:
-            error_msg = f"Exception occured in Class : {self.class_name}, Method : {method_name}, Error : {str(e)}"
+            raise e
 
-            raise Exception(error_msg)
-
-    def start_log(self, key, class_name, method_name, table_name):
+    def start_log(self, key, class_name, method_name, db_name, collection_name):
         """
         Method Name :   start_log
         Description :   This method is used for logging the entry or exit of method depending on key value
-
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
@@ -60,20 +35,21 @@ class app_logger:
         try:
             func = lambda: "Entered" if key == "start" else "Exited"
 
-            log_msg = f"{func()} {method_name} method of class {class_name}"
+            key = func()
 
-            self.log(table_name, log_message=log_msg)
+            log_msg = f"{key} {method_name} method of class {class_name}"
+
+            self.log(db_name=db_name, collection_name=collection_name, log_info=log_msg)
 
         except Exception as e:
             error_msg = f"Exception occured in Class : {self.class_name}, Method : {start_method_name}, Error : {str(e)}"
 
             raise Exception(error_msg)
 
-    def exception_log(self, error, class_name, method_name, table_name):
+    def exception_log(self, error, class_name, method_name, db_name, collection_name):
         """
         Method Name :   exception_log
         Description :   This method is used for logging exception
-
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
@@ -82,11 +58,14 @@ class app_logger:
             key="exit",
             class_name=class_name,
             method_name=method_name,
-            table_name=table_name,
+            db_name=db_name,
+            collection_name=collection_name,
         )
 
         exception_msg = f"Exception occured in Class : {class_name}, Method : {method_name}, Error : {str(error)}"
 
-        self.log(table_name=table_name, log_message=exception_msg)
+        self.log(
+            db_name=db_name, collection_name=collection_name, log_info=exception_msg
+        )
 
         raise Exception(exception_msg)

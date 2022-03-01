@@ -5,7 +5,7 @@ from utils.read_params import read_params
 
 class data_transform_pred:
     """
-    Description : This class shall be used for transforming the prediction batch data before loading it in Database!!.
+    Description : This class shall be used for transforming the Prediction batch data before loading it in Database!!.
 
     Version     : 1.2
     Revisions   : moved setup to cloud

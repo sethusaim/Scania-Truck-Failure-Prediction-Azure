@@ -5,9 +5,9 @@ from utils.logger import app_logger
 from utils.read_params import read_params
 
 
-class pred_validation:
+class Pred_Validation:
     """
-    Description :   This class is used for validating all the prediction batch files
+    Description :   This class is used for validating all the Prediction batch files
 
     Version     :   1.2
     Revisions   :   moved to setup to cloud
@@ -34,15 +34,15 @@ class pred_validation:
 
         self.log_writer = app_logger()
 
-    def prediction_validation(self):
+    def Prediction_validation(self):
         """
         Method Name :   load_s3_obj
-        Description :   This method is used for validating the prediction btach files
+        Description :   This method is used for validating the Prediction btach files
 
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
-        method_name = self.prediction_validation.__name__
+        method_name = self.Prediction_validation.__name__
 
         self.log_writer.start_log(
             key="start",

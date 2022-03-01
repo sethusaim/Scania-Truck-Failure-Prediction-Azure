@@ -32,18 +32,18 @@ jobs:
                         --build-arg MONGODB_URL="${{ secrets.MONGODB_URL }}" \
                         --build-arg MLFLOW_TRACKING_USERNAME="${{ secrets.MLFLOW_TRACKING_USERNAME }}" \
                         --build-arg MLFLOW_TRACKING_PASSWORD="${{ secrets.MLFLOW_TRACKING_PASSWORD }}" \ 
-                        -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/phising-azure-app:${{ github.sha }}
-            docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/phising-azure-app:${{ github.sha }}
+                        -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/scania-azure-app:${{ github.sha }}
+            docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/scania-azure-app:${{ github.sha }}
         
         - name: 'Deploy to Azure Container Instances'
           uses: 'azure/aci-deploy@v1'
           with:
             resource-group: ${{ secrets.RESOURCE_GROUP }}
             dns-name-label: ${{ secrets.RESOURCE_GROUP }}${{ github.run_number }}
-            image: ${{ secrets.REGISTRY_LOGIN_SERVER }}/phising-azure-app:${{ github.sha }}
+            image: ${{ secrets.REGISTRY_LOGIN_SERVER }}/scania-azure-app:${{ github.sha }}
             registry-login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
             registry-username: ${{ secrets.REGISTRY_USERNAME }}
             registry-password: ${{ secrets.REGISTRY_PASSWORD }}
-            name: aci-phising-azure-app
+            name: aci-scania-azure-app
             location: 'west us'
             ports: 8080

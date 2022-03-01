@@ -7,7 +7,7 @@ from utils.read_params import read_params
 
 class raw_pred_data_validation:
     """
-    Description :   This method is used for validating the raw prediction data
+    Description :   This method is used for validating the raw Prediction data
 
     Version     :   1.2
     Revisions   :   moved to setup to cloud
@@ -53,7 +53,7 @@ class raw_pred_data_validation:
     def values_from_schema(self):
         """
         Method Name :   values_from_schema
-        Description :   This method is used for getting values from schema_prediction.json
+        Description :   This method is used for getting values from schema_Prediction.json
 
         Version     :   1.2
         Revisions   :   moved setup to cloud
@@ -92,7 +92,8 @@ class raw_pred_data_validation:
             )
 
             self.log_writer.log(
-                table_name=self.pred_schema_log, log_message=message,
+                table_name=self.pred_schema_log,
+                log_message=message,
             )
 
             self.log_writer.start_log(
@@ -135,10 +136,15 @@ class raw_pred_data_validation:
                 table_name=self.pred_gen_log,
             )
 
-            regex = self.s3.read_text(file_name=self.scania_regex_file,bucket_name=self.input_files_bucket,table_name=self.pred_gen_log)
+            regex = self.s3.read_text(
+                file_name=self.scania_regex_file,
+                bucket_name=self.input_files_bucket,
+                table_name=self.pred_gen_log,
+            )
 
             self.log_writer.log(
-                table_name=self.pred_gen_log, log_message=f"Got {regex} pattern",
+                table_name=self.pred_gen_log,
+                log_message=f"Got {regex} pattern",
             )
 
             self.log_writer.start_log(
@@ -190,7 +196,7 @@ class raw_pred_data_validation:
 
             self.log_writer.log(
                 table_name=self.pred_name_valid_log,
-                log_message="Got prediction files with exact name",
+                log_message="Got Prediction files with exact name",
             )
 
             for filename in pred_batch_files:

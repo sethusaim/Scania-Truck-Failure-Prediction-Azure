@@ -1,12 +1,12 @@
 import pandas as pd
-from scania.data_ingestion.data_loader_prediction import data_getter_pred
+from scania.data_ingestion.data_loader_Prediction import data_getter_pred
 from scania.data_preprocessing.preprocessing import preprocessor
 from scania.s3_bucket_operations.s3_operations import s3_operations
 from utils.logger import app_logger
 from utils.read_params import read_params
 
 
-class prediction:
+class Prediction:
     """
     Description :   This class shall be used for loading the production model
 
@@ -40,7 +40,7 @@ class prediction:
     def predict_from_model(self):
         """
         Method Name :   predict_from_model
-        Description :   This method is used for loading from prod model dir of s3 bucket and use them for prediction
+        Description :   This method is used for loading from prod model dir of s3 bucket and use them for Prediction
 
         Version     :   1.2
         Revisions   :   moved setup to cloud
@@ -124,7 +124,7 @@ class prediction:
                 )
 
             self.log_writer.log(
-                table_name=self.pred_log, log_message="End of prediction"
+                table_name=self.pred_log, log_message="End of Prediction"
             )
 
             self.log_writer.start_log(
