@@ -60,17 +60,17 @@ async def trainRouteClient():
     try:
         raw_data_train_container_name = config["container"]["scania_raw_data"]
 
-        train_val_obj = Train_Validation(container_name=raw_data_train_container_name)
+        train_val = Train_Validation(container_name=raw_data_train_container_name)
 
-        train_val_obj.training_validation()
+        train_val.training_validation()
 
-        train_model_obj = Train_Model()
+        train_model = Train_Model()
 
-        num_clusters = train_model_obj.training_model()
+        num_clusters = train_model.training_model()
 
-        Load_Prod_Model_obj = Load_Prod_Model(num_clusters=num_clusters)
+        load_prod_model = Load_Prod_Model(num_clusters=num_clusters)
 
-        Load_Prod_Model_obj.load_production_model()
+        load_prod_model.load_production_model()
 
     except Exception as e:
         return Response(f"Error Occurred : {e}")

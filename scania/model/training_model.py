@@ -62,7 +62,7 @@ class Train_Model:
             db_name=self.db_name, collection_name=self.model_train_log
         )
 
-        self.Model_Finder_obj = Model_Finder(
+        self.model_finder = Model_Finder(
             db_name=self.db_name, collection_name=self.model_train_log
         )
 
@@ -159,7 +159,7 @@ class Train_Model:
                     xgb_model_score,
                     rf_model,
                     rf_model_score,
-                ) = self.Model_Finder_obj.get_trained_models(
+                ) = self.model_finder.get_trained_models(
                     x_train, y_train, x_test, y_test
                 )
 
