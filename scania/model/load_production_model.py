@@ -1,5 +1,5 @@
-from scania.mlflow_utils.MLFlow_Operation import MLFlow_Operation
-from utils.logger import app_logger
+from scania.mlflow_utils.mlflow_operations import MLFlow_Operation
+from utils.logger import App_Logger
 from utils.read_params import read_params
 
 
@@ -12,7 +12,7 @@ class Load_Prod_Model:
     """
 
     def __init__(self, num_clusters):
-        self.log_writer = app_logger()
+        self.log_writer = App_Logger()
 
         self.config = read_params()
 
@@ -20,13 +20,17 @@ class Load_Prod_Model:
 
         self.num_clusters = num_clusters
 
-        self.model_container = self.config["container"]["scania_model_container"]
+        self.model_container = self.config["container"]["scania_model"]
 
-        self.Load_Prod_Model_log = self.config["train_db_log"]["Load_Prod_Model"]
+        self.db_name = self.config["db_log"]["train"]
+
+        self.load_prod_model_log = self.config["train_db_log"]["load_prod_model"]
 
         self.exp_name = self.config["mlflow_config"]["experiment_name"]
 
-        self.mlflow_op = MLFlow_Operation(collection_name=self.Load_Prod_Model_log)
+        self.mlflow_op = MLFlow_Operation(
+            db_name=self.db_name, collection_name=self.load_prod_model_log
+        )
 
     def load_production_model(self):
         """
@@ -43,7 +47,8 @@ class Load_Prod_Model:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            collection_name=self.Load_Prod_Model_log,
+            db_name=self.db_name,
+            collection_name=self.load_prod_model_log,
         )
 
         try:
@@ -72,21 +77,24 @@ class Load_Prod_Model:
             ]
 
             self.log_writer.log(
-                collection_name=self.Load_Prod_Model_log,
+                db_name=self.db_name,
+                collection_name=self.load_prod_model_log,
                 log_info="Created cols for all registered model",
             )
 
             runs_cols = runs[cols].max().sort_values(ascending=False)
 
             self.log_writer.log(
-                collection_name=self.Load_Prod_Model_log,
+                db_name=self.db_name,
+                collection_name=self.load_prod_model_log,
                 log_info="Sorted the runs cols in descending order",
             )
 
             metrics_dict = runs_cols.to_dict()
 
             self.log_writer.log(
-                collection_name=self.Load_Prod_Model_log,
+                db_name=self.db_name,
+                collection_name=self.load_prod_model_log,
                 log_info="Converted runs cols to dict",
             )
 
@@ -127,7 +135,8 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             ]
 
             self.log_writer.log(
-                collection_name=self.Load_Prod_Model_log,
+                db_name=self.db_name,
+                collection_name=self.load_prod_model_log,
                 log_info=f"Got top model names based on the metrics of clusters",
             )
 
@@ -141,7 +150,8 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             top_mn_lst = [mn.split(".")[1].split("-")[0] for mn in best_metrics_names]
 
             self.log_writer.log(
-                collection_name=self.Load_Prod_Model_log,
+                db_name=self.db_name,
+                collection_name=self.load_prod_model_log,
                 log_info=f"Got the top model names",
             )
 
@@ -159,7 +169,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             model_version=mv.version,
                             stage="Production",
                             model_name=mv.name,
-                            container=self.model_container,
+                            container_name=self.model_container,
                         )
 
                     ## In the registered models, even kmeans model is present, so during Prediction,
@@ -170,7 +180,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             model_version=mv.version,
                             stage="Production",
                             model_name=mv.name,
-                            container=self.model_container,
+                            container_name=self.model_container,
                         )
 
                     else:
@@ -182,7 +192,8 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                         )
 
             self.log_writer.log(
-                collection_name=self.Load_Prod_Model_log,
+                db_name=self.db_name,
+                collection_name=self.load_prod_model_log,
                 log_info="Transitioning of models based on scores successfully done",
             )
 
@@ -190,7 +201,8 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                collection_name=self.Load_Prod_Model_log,
+                db_name=self.db_name,
+                collection_name=self.load_prod_model_log,
             )
 
         except Exception as e:
@@ -198,5 +210,6 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                collection_name=self.Load_Prod_Model_log,
+                db_name=self.db_name,
+                collection_name=self.load_prod_model_log,
             )

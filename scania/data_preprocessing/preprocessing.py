@@ -8,7 +8,7 @@ from utils.model_utils import Model_Utils
 from utils.read_params import read_params
 
 
-class preprocessor:
+class Preprocessor:
     """
     Description :   This class shall  be used to clean and transform the data before training.
     Version     :   1.2

@@ -1,10 +1,10 @@
 from sklearn.ensemble import AdaBoostClassifier, RandomForestClassifier
-from utils.logger import app_logger
-from utils.model_utils import get_model_name, get_model_params, get_model_score
+from utils.logger import App_Logger
+from utils.model_utils import Model_Utils
 from utils.read_params import read_params
 
 
-class model_finder:
+class Model_Finder:
     """
     Description :   This method is used for hyperparameter tuning of selected models
                     some preprocessing steps and then train the models and register them in mlflow
@@ -12,14 +12,18 @@ class model_finder:
     Revisions   :   moved to setup to cloud
     """
 
-    def __init__(self, collection_name):
+    def __init__(self, db_name, collection_name):
+        self.db_name = db_name
+
         self.collection_name = collection_name
 
         self.class_name = self.__class__.__name__
 
         self.config = read_params()
 
-        self.log_writer = app_logger()
+        self.log_writer = App_Logger()
+
+        self.model_utils = Model_Utils()
 
         self.cv = self.config["model_utils"]["cv"]
 
@@ -44,19 +48,23 @@ class model_finder:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
         try:
-            self.ada_model_name = get_model_name(
-                model=self.ada_model, collection_name=self.collection_name
+            self.ada_model_name = self.model_utils.get_model_name(
+                model=self.ada_model,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
-            self.adaboost_best_params = get_model_params(
+            self.adaboost_best_params = self.model_utils.get_model_params(
                 model=self.ada_model,
                 model_key_name="adaboost_model",
                 x_train=train_x,
                 y_train=train_y,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -67,6 +75,7 @@ class model_finder:
             self.random_state = self.adaboost_best_params["random_state"]
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"{self.ada_model_name} model best params are {self.adaboost_best_params}",
             )
@@ -78,6 +87,7 @@ class model_finder:
             )
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"Initialized {self.ada_model_name} with {self.adaboost_best_params} as params",
             )
@@ -85,6 +95,7 @@ class model_finder:
             self.ada_model.fit(train_x, train_y)
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"Created {self.ada_model_name} based on the {self.adaboost_best_params} as params",
             )
@@ -93,6 +104,7 @@ class model_finder:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -103,6 +115,7 @@ class model_finder:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -119,19 +132,21 @@ class model_finder:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
         try:
-            self.rf_model_name = get_model_name(
+            self.rf_model_name = self.model_utils.get_model_name(
                 model=self.rf_model, collection_name=self.collection_name
             )
 
-            self.rf_best_params = get_model_params(
+            self.rf_best_params = self.model_utils.get_model_params(
                 model=self.rf_model,
                 model_key_name="rf_model",
                 x_train=train_x,
                 y_train=train_y,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -144,6 +159,7 @@ class model_finder:
             self.n_estimators = self.rf_best_params["n_estimators"]
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"{self.rf_model_name} model best params are {self.rf_best_params}",
             )
@@ -156,6 +172,7 @@ class model_finder:
             )
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"Initialized {self.rf_model_name} with {self.rf_best_params} as params",
             )
@@ -163,6 +180,7 @@ class model_finder:
             self.rf_model.fit(train_x, train_y)
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"Created {self.rf_model_name} based on the {self.rf_best_params} as params",
             )
@@ -171,6 +189,7 @@ class model_finder:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -181,6 +200,7 @@ class model_finder:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -200,6 +220,7 @@ class model_finder:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
@@ -208,19 +229,21 @@ class model_finder:
                 train_x=train_x, train_y=train_y
             )
 
-            ada_model_score = get_model_score(
+            ada_model_score = self.model_utils.get_model_score(
                 model=ada_model,
                 test_x=test_x,
                 test_y=test_y,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
             rf_model = self.get_best_model_for_rf(train_x=train_x, train_y=train_y)
 
-            rf_model_score = get_model_score(
+            rf_model_score = self.model_utils.get_model_score(
                 model=rf_model,
                 test_x=test_x,
                 test_y=test_y,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -228,6 +251,7 @@ class model_finder:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -243,5 +267,6 @@ class model_finder:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )

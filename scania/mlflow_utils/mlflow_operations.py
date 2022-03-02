@@ -624,7 +624,7 @@ class MLFlow_Operation:
                 collection_name=self.collection_name,
             )
 
-    def transition_mlflow_model(self, model_version, stage, model_name, container):
+    def transition_mlflow_model(self, model_version, stage, model_name, container_name):
         """
         Method Name :   transition_mlflow_model
         Description :   This method transitions the models in mlflow and as well as in blob container based on
@@ -689,11 +689,11 @@ class MLFlow_Operation:
 
                 self.blob.copy_data(
                     from_file_name=trained_model_file,
-                    from_container_name=container,
+                    from_container_name=container_name,
                     to_file_name=prod_model_file,
-                    to_container_name=container,
+                    to_container_name=container_name,
                     db_name=self.db_name,
-                    collection_name=self.collection_name
+                    collection_name=self.collection_name,
                 )
 
             elif stage == "Staging":
@@ -715,11 +715,11 @@ class MLFlow_Operation:
 
                 self.blob.copy_data(
                     from_file_name=trained_model_file,
-                    from_container_name=container,
+                    from_container_name=container_name,
                     to_file_name=stag_model_file,
-                    to_container_name=container,
+                    to_container_name=container_name,
                     db_name=self.db_name,
-                    collection_name=self.collection_name
+                    collection_name=self.collection_name,
                 )
 
             else:
