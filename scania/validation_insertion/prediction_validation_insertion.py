@@ -1,20 +1,20 @@
 from scania.data_transform.data_transformation_pred import Data_Transform_Pred
 from scania.data_type_valid.data_type_valid_pred import DB_Operation_Pred
-from scania.raw_data_validation.pred_data_validation import raw_pred_data_validation
-from utils.logger import app_logger
+from scania.raw_data_validation.pred_data_validation import Raw_Pred_Data_Validation
+from utils.logger import App_Logger
 from utils.read_params import read_params
 
 
 class Pred_Validation:
     """
-    Description :   This class is used for validating all the Prediction batch files
+    Description :   This class is used for validating all the prediction batch files
 
     Version     :   1.2
     Revisions   :   moved to setup to cloud
     """
 
     def __init__(self, container_name):
-        self.raw_data = raw_pred_data_validation(raw_data_container_name=container_name)
+        self.raw_data = Raw_Pred_Data_Validation(raw_data_container_name=container_name)
 
         self.data_transform = Data_Transform_Pred()
 
@@ -24,34 +24,35 @@ class Pred_Validation:
 
         self.class_name = self.__class__.__name__
 
+        self.db_name = self.config["db_log"]["pred"]
+
         self.pred_main_log = self.config["pred_db_log"]["pred_main"]
 
-        self.good_data_db_name = self.config["mongodb"]["scania_data_db_name"]
+        self.good_data_db_name = self.config["mongodb"]["train"]["db"]
 
-        self.good_data_collection_name = self.config["mongodb"][
-            "scania_pred_data_collection"
-        ]
+        self.good_data_collection_name = self.config["mongodb"]["train"]["collection"]
 
-        self.log_writer = app_logger()
+        self.log_writer = App_Logger()
 
-    def Prediction_validation(self):
+    def prediction_validation(self):
         """
-        Method Name :   load_blob_obj
-        Description :   This method is used for validating the Prediction btach files
+        Method Name :   load_blob
+        Description :   This method is used for validating the prediction btach files
 
         Version     :   1.2
         Revisions   :   moved setup to cloud
         """
-        method_name = self.Prediction_validation.__name__
-
-        self.log_writer.start_log(
-            key="start",
-            class_name=self.class_name,
-            method_name=method_name,
-            collection_name=self.pred_main_log,
-        )
+        method_name = self.prediction_validation.__name__
 
         try:
+            self.log_writer.start_log(
+                key="start",
+                class_name=self.class_name,
+                method_name=method_name,
+                db_name=self.db_name,
+                collection_name=self.pred_main_log,
+            )
+
             (
                 LengthOfDateStampInFile,
                 LengthOfTimeStampInFile,
@@ -70,18 +71,23 @@ class Pred_Validation:
             self.raw_data.validate_missing_values_in_col()
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.pred_main_log,
                 log_info="Raw Data Validation Completed !!",
             )
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.pred_main_log,
                 log_info="Starting Data Transformation",
             )
 
-            self.data_transform.add_quotes_to_string()
+            self.data_transform.rename_target_column()
+
+            self.data_transform.replace_missing_with_null()
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.pred_main_log,
                 log_info="Data Transformation completed !!",
             )
@@ -92,6 +98,7 @@ class Pred_Validation:
             )
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.pred_main_log,
                 log_info="Data type validation Operation completed !!",
             )
@@ -105,6 +112,7 @@ class Pred_Validation:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_main_log,
             )
 
@@ -113,5 +121,6 @@ class Pred_Validation:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_main_log,
             )
