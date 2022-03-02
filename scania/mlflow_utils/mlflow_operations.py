@@ -27,9 +27,7 @@ class MLFlow_Operation:
 
         self.log_writer = App_Logger()
 
-        self.model_utils = Model_Utils(
-            db_name=self.db_name, collection_name=self.collection_name
-        )
+        self.model_utils = Model_Utils()
 
         self.blob = Blob_Operation()
 
@@ -571,7 +569,9 @@ class MLFlow_Operation:
                 collection_name=self.collection_name,
             )
 
-            base_model_name = self.model_utils.get_model_name(model=model)
+            base_model_name = self.model_utils.get_model_name(
+                model=model, db_name=self.db_name, collection_name=self.collection_name
+            )
 
             if base_model_name is "KMeans":
                 self.log_model(model=model, model_name=base_model_name)

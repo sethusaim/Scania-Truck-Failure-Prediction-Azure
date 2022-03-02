@@ -23,9 +23,7 @@ class Model_Finder:
 
         self.log_writer = App_Logger()
 
-        self.model_utils = Model_Utils(
-            db_name=self.db_name, collection_name=self.collection_name
-        )
+        self.model_utils = Model_Utils()
 
         self.cv = self.config["model_utils"]["cv"]
 
@@ -55,13 +53,19 @@ class Model_Finder:
         )
 
         try:
-            self.ada_model_name = self.model_utils.get_model_name(model=self.ada_model)
+            self.ada_model_name = self.model_utils.get_model_name(
+                model=self.ada_model,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
 
             self.adaboost_best_params = self.model_utils.get_model_params(
                 model=self.ada_model,
                 model_key_name="adaboost_model",
                 x_train=train_x,
                 y_train=train_y,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             self.n_estimators = self.adaboost_best_params["n_estimators"]
@@ -133,13 +137,19 @@ class Model_Finder:
         )
 
         try:
-            self.rf_model_name = self.model_utils.get_model_name(model=self.rf_model)
+            self.rf_model_name = self.model_utils.get_model_name(
+                model=self.rf_model,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+            )
 
             self.rf_best_params = self.model_utils.get_model_params(
                 model=self.rf_model,
                 model_key_name="rf_model",
                 x_train=train_x,
                 y_train=train_y,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             self.criterion = self.rf_best_params["criterion"]
@@ -225,6 +235,8 @@ class Model_Finder:
                 model=ada_model,
                 test_x=test_x,
                 test_y=test_y,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             rf_model = self.get_best_model_for_rf(train_x=train_x, train_y=train_y)
@@ -233,6 +245,8 @@ class Model_Finder:
                 model=rf_model,
                 test_x=test_x,
                 test_y=test_y,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             self.log_writer.start_log(

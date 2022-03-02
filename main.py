@@ -49,10 +49,10 @@ async def create_containers():
 
         container.generate_containers()
 
-        return Response(f"Error Occurred!{e}")
+        return Response("Created Azure containers !!")
 
     except Exception as e:
-        return Response(f"Error Occurred!{e}")
+        return Response(f"Error Occurred : {e}")
 
 
 @app.get("/train")
@@ -73,7 +73,7 @@ async def trainRouteClient():
         Load_Prod_Model_obj.load_production_model()
 
     except Exception as e:
-        return Response(f"Error Occurred!{e}")
+        return Response(f"Error Occurred : {e}")
 
     return Response("Training successfull!!")
 
@@ -96,7 +96,7 @@ async def predictRouteClient():
         )
 
     except Exception as e:
-        return Response(f"Error Occurred! {e}")
+        return Response(f"Error Occurred : {e}")
 
 
 if __name__ == "__main__":
