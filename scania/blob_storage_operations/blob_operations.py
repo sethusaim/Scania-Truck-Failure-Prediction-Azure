@@ -1056,7 +1056,7 @@ class Blob_Operation:
 
             self.upload_file(
                 local_file_name=model_file,
-                container_file_name=model_file,
+                container_file_name=container_model_file,
                 container_name=container_name,
                 db_name=db_name,
                 collection_name=collection_name,

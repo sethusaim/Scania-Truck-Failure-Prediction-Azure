@@ -49,6 +49,8 @@ async def create_containers():
 
         container.generate_containers()
 
+        return Response(f"Error Occurred!{e}")
+
     except Exception as e:
         return Response(f"Error Occurred!{e}")
 
