@@ -1,13 +1,13 @@
 import re
 
-from scania.container_operations.blob_operation import blob_operation
-from utils.logger import app_logger
+from scania.blob_storage_operations.blob_operations import Blob_Operation
+from utils.logger import App_Logger
 from utils.read_params import read_params
 
 
-class raw_pred_data_validation:
+class Raw_Pred_Data_Validation:
     """
-    Description :   This method is used for validating the raw Prediction data
+    Description :   This method is used for validating the raw prediction data
 
     Version     :   1.2
     Revisions   :   moved to setup to cloud
@@ -16,31 +16,31 @@ class raw_pred_data_validation:
     def __init__(self, raw_data_container_name):
         self.config = read_params()
 
+        self.db_name = self.config["db_log"]["pred"]
+
         self.raw_data_container_name = raw_data_container_name
 
-        self.log_writer = app_logger()
+        self.log_writer = App_Logger()
 
         self.class_name = self.__class__.__name__
 
-        self.blob = blob_operation()
+        self.blob = Blob_Operation()
 
-        self.pred_data_container = self.config["container"][
-            "scania_pred_data_container"
-        ]
+        self.pred_data_container = self.config["container"]["pred_data"]
 
-        self.input_files_container = self.config["container"]["input_files_container"]
+        self.input_files = self.config["container"]["input_files"]
 
-        self.raw_pred_data_dir = self.config["data"]["raw_data"]["pred_batch"]
+        self.raw_pred_data_dir = self.config["data"]["raw_data"]["pred"]
 
-        self.pred_schema_file = self.config["schema_file"]["pred_schema_file"]
+        self.pred = self.config["schema_file"]["pred"]
 
-        self.scania_regex_file = self.config["regex_file"]
+        self.regex_file = self.config["regex_file"]
 
         self.pred_schema_log = self.config["pred_db_log"]["values_from_schema"]
 
-        self.good_pred_data_dir = self.config["data"]["pred"]["good_data_dir"]
+        self.good_pred_data_dir = self.config["data"]["pred"]["good"]
 
-        self.bad_pred_data_dir = self.config["data"]["pred"]["bad_data_dir"]
+        self.bad_pred_data_dir = self.config["data"]["pred"]["bad"]
 
         self.pred_gen_log = self.config["pred_db_log"]["general"]
 
@@ -55,7 +55,7 @@ class raw_pred_data_validation:
     def values_from_schema(self):
         """
         Method Name :   values_from_schema
-        Description :   This method is used for getting values from schema_Prediction.json
+        Description :   This method is used for getting values from schema_prediction.json
 
         Version     :   1.2
         Revisions   :   moved setup to cloud
@@ -67,13 +67,15 @@ class raw_pred_data_validation:
                 key="start",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_schema_log,
             )
 
             dic = self.blob.read_json(
-                container=self.input_files_container,
-                filename=self.pred_schema_file,
+                db_name=self.db_name,
                 collection_name=self.pred_schema_log,
+                container_name=self.input_files,
+                file_name=self.pred,
             )
 
             LengthOfDateStampInFile = dic["LengthOfDateStampInFile"]
@@ -85,15 +87,16 @@ class raw_pred_data_validation:
             NumberofColumns = dic["NumberofColumns"]
 
             message = (
-                "LengthOfDateStampInFile:: %s" % LengthOfDateStampInFile
+                "LengthOfDateStampInFile: %s" % LengthOfDateStampInFile
                 + "\t"
-                + "LengthOfTimeStampInFile:: %s" % LengthOfTimeStampInFile
+                + "LengthOfTimeStampInFile: %s" % LengthOfTimeStampInFile
                 + "\t "
-                + "NumberofColumns:: %s" % NumberofColumns
+                + "NumberofColumns: %s" % NumberofColumns
                 + "\n"
             )
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.pred_schema_log,
                 log_info=message,
             )
@@ -102,6 +105,7 @@ class raw_pred_data_validation:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_schema_log,
             )
 
@@ -110,6 +114,7 @@ class raw_pred_data_validation:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_schema_log,
             )
 
@@ -135,16 +140,19 @@ class raw_pred_data_validation:
                 key="start",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_gen_log,
             )
 
             regex = self.blob.read_text(
-                file_name=self.scania_regex_file,
-                container_name=self.input_files_container,
+                file_name=self.regex_file,
+                container_name=self.input_files,
+                db_name=self.db_name,
                 collection_name=self.pred_gen_log,
             )
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.pred_gen_log,
                 log_info=f"Got {regex} pattern",
             )
@@ -153,6 +161,7 @@ class raw_pred_data_validation:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_gen_log,
             )
 
@@ -163,6 +172,7 @@ class raw_pred_data_validation:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_gen_log,
             )
 
@@ -182,25 +192,24 @@ class raw_pred_data_validation:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.pred_name_valid_log,
         )
 
         try:
-            self.blob.create_dirs_for_good_bad_data(
-                collection_name=self.pred_name_valid_log
-            )
-
-            onlyfiles = self.blob.get_files(
-                container=self.raw_data_container_name,
-                folder_name=self.raw_pred_data_dir,
+            onlyfiles = self.blob.get_files_from_folder(
+                db_name=self.db_name,
                 collection_name=self.pred_name_valid_log,
+                container_name=self.raw_data_container_name,
+                folder_name=self.raw_pred_data_dir,
             )
 
             pred_batch_files = [f.split("/")[1] for f in onlyfiles]
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.pred_name_valid_log,
-                log_info="Got Prediction files with exact name",
+                log_info="Got prediction files with exact name",
             )
 
             for filename in pred_batch_files:
@@ -211,6 +220,7 @@ class raw_pred_data_validation:
                 bad_data_pred_filename = self.bad_pred_data_dir + "/" + filename
 
                 self.log_writer.log(
+                    db_name=self.db_name,
                     collection_name=self.pred_name_valid_log,
                     log_info="Created raw,good and bad data filenames",
                 )
@@ -223,37 +233,41 @@ class raw_pred_data_validation:
                     if len(splitAtDot[1]) == LengthOfDateStampInFile:
                         if len(splitAtDot[2]) == LengthOfTimeStampInFile:
                             self.blob.copy_data(
-                                src_container=self.raw_data_container_name,
-                                src_file=raw_data_pred_filename,
-                                dest_container=self.pred_data_container,
-                                dest_file=good_data_pred_filename,
+                                from_file_name=raw_data_pred_filename,
+                                from_container_name=self.raw_data_container_name,
+                                to_file_name=good_data_pred_filename,
+                                to_container_name=self.pred_data_container,
+                                db_name=self.db_name,
                                 collection_name=self.pred_name_valid_log,
                             )
 
                         else:
                             self.blob.copy_data(
-                                src_container=self.raw_data_container_name,
-                                src_file=raw_data_pred_filename,
-                                dest_container=self.pred_data_container,
-                                dest_file=bad_data_pred_filename,
+                                from_file_name=raw_data_pred_filename,
+                                from_container_name=self.raw_data_container_name,
+                                to_file_name=bad_data_pred_filename,
+                                to_container_name=self.pred_data_container,
+                                db_name=self.db_name,
                                 collection_name=self.pred_name_valid_log,
                             )
 
                     else:
                         self.blob.copy_data(
-                            src_container=self.raw_data_container_name,
-                            src_file=raw_data_pred_filename,
-                            dest_container=self.pred_data_container,
-                            dest_file=bad_data_pred_filename,
+                            from_file_name=raw_data_pred_filename,
+                            from_container_name=self.raw_data_container_name,
+                            to_file_name=bad_data_pred_filename,
+                            to_container_name=self.pred_data_container,
+                            db_name=self.db_name,
                             collection_name=self.pred_name_valid_log,
                         )
 
                 else:
                     self.blob.copy_data(
-                        src_container=self.raw_data_container_name,
-                        src_file=raw_data_pred_filename,
-                        dest_container=self.pred_data_container,
-                        dest_file=bad_data_pred_filename,
+                        from_file_name=raw_data_pred_filename,
+                        from_container_name=self.raw_data_container_name,
+                        to_file_name=bad_data_pred_filename,
+                        to_container_name=self.pred_data_container,
+                        db_name=self.db_name,
                         collection_name=self.pred_name_valid_log,
                     )
 
@@ -261,6 +275,7 @@ class raw_pred_data_validation:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_name_valid_log,
             )
 
@@ -269,6 +284,7 @@ class raw_pred_data_validation:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_name_valid_log,
             )
 
@@ -286,23 +302,24 @@ class raw_pred_data_validation:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.pred_col_valid_log,
         )
 
         try:
-            lst = self.blob.read_csv(
-                container=self.pred_data_container,
-                file_name=self.good_pred_data_dir,
+            lst = self.blob.read_csv_from_folder(
+                folder_name=self.good_pred_data_dir,
+                container_name=self.pred_data_container,
+                db_name=self.db_name,
                 collection_name=self.pred_col_valid_log,
-                folder=True,
             )
 
-            for idx, f in enumerate(lst):
-                df = f[idx][0]
+            for f in lst:
+                df = f[0]
 
-                file = f[idx][1]
+                file = f[1]
 
-                abs_f = f[idx][2]
+                abs_f = f[2]
 
                 if file.endswith(".csv"):
                     if df.shape[1] == NumberofColumns:
@@ -312,10 +329,11 @@ class raw_pred_data_validation:
                         dest_f = self.bad_pred_data_dir + "/" + abs_f
 
                         self.blob.move_data(
-                            src_container=self.pred_data_container,
-                            src_file=file,
-                            dest_container=self.pred_data_container,
-                            dest_file=dest_f,
+                            from_file_name=file,
+                            from_container_name=self.pred_data_container,
+                            to_file_name=dest_f,
+                            to_container_name=self.pred_data_container,
+                            db_name=self.db_name,
                             collection_name=self.pred_col_valid_log,
                         )
 
@@ -326,6 +344,7 @@ class raw_pred_data_validation:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_col_valid_log,
             )
 
@@ -334,6 +353,7 @@ class raw_pred_data_validation:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_col_valid_log,
             )
 
@@ -351,23 +371,24 @@ class raw_pred_data_validation:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.pred_missing_value_log,
         )
 
         try:
-            lst = self.blob.read_csv(
-                container=self.pred_data_container,
-                file_name=self.good_pred_data_dir,
+            lst = self.blob.read_csv_from_folder(
+                folder_name=self.good_pred_data_dir,
+                container_name=self.pred_data_container,
+                db_name=self.db_name,
                 collection_name=self.pred_missing_value_log,
-                folder=True,
             )
 
-            for idx, f in lst:
-                df = f[idx][0]
+            for f in lst:
+                df = f[0]
 
-                file = f[idx][1]
+                file = f[1]
 
-                abs_f = f[idx][2]
+                abs_f = f[2]
 
                 if abs_f.endswith(".csv"):
                     count = 0
@@ -379,10 +400,11 @@ class raw_pred_data_validation:
                             dest_f = self.bad_pred_data_dir + "/" + abs_f
 
                             self.blob.move_data(
-                                src_container=self.pred_data_container,
-                                src_file=file,
-                                dest_container=self.pred_data_container,
-                                dest_file=dest_f,
+                                from_file_name=file,
+                                from_container_name=self.pred_data_container,
+                                to_file_name=dest_f,
+                                to_container_name=self.pred_data_container,
+                                db_name=self.db_name,
                                 collection_name=self.pred_missing_value_log,
                             )
 
@@ -392,10 +414,11 @@ class raw_pred_data_validation:
                         dest_f = self.good_pred_data_dir + "/" + abs_f
 
                         self.blob.upload_df_as_csv(
-                            data_frame=df,
-                            file_name=abs_f,
-                            container=self.pred_data_container,
-                            dest_file_name=dest_f,
+                            dataframe=df,
+                            local_file_name=abs_f,
+                            container_file_name=dest_f,
+                            container_name=self.pred_data_container,
+                            db_name=self.db_name,
                             collection_name=self.pred_missing_value_log,
                         )
 
@@ -406,6 +429,7 @@ class raw_pred_data_validation:
                     key="exit",
                     class_name=self.class_name,
                     method_name=method_name,
+                    db_name=self.db_name,
                     collection_name=self.pred_missing_value_log,
                 )
 
@@ -414,5 +438,6 @@ class raw_pred_data_validation:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.pred_missing_value_log,
             )
