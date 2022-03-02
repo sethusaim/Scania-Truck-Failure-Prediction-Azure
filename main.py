@@ -1,6 +1,5 @@
 import json
 import os
-import time
 
 import uvicorn
 from fastapi import FastAPI, Request
@@ -10,10 +9,10 @@ from fastapi.templating import Jinja2Templates
 
 from scania.model.load_production_model import Load_Prod_Model
 from scania.model.prediction_from_model import Prediction
-from scania.model.training_model import train_model
+from scania.model.training_model import Train_Model
 from scania.validation_insertion.prediction_validation_insertion import Pred_Validation
 from scania.validation_insertion.train_validation_insertion import Train_Validation
-from utils.create_containers import create_log_table
+from utils.create_containers import Azure_Container
 from utils.read_params import read_params
 
 os.putenv("LANG", "en_US.UTF-8")
@@ -43,22 +42,27 @@ async def index(request: Request):
     )
 
 
+@app.get("/create")
+async def create_containers():
+    try:
+        container = Azure_Container()
+
+        container.generate_containers()
+
+    except Exception as e:
+        return Response(f"Error Occurred!{e}")
+
+
 @app.get("/train")
 async def trainRouteClient():
     try:
-        raw_data_train_container_name = config["container"]["scania_raw_data_container"]
-
-        table_obj = create_log_table()
-
-        table_obj.generate_log_tables(type="train")
-
-        time.sleep(5)
+        raw_data_train_container_name = config["container"]["scania_raw_data"]
 
         train_val_obj = Train_Validation(container_name=raw_data_train_container_name)
 
         train_val_obj.training_validation()
 
-        train_model_obj = train_model()
+        train_model_obj = Train_Model()
 
         num_clusters = train_model_obj.training_model()
 
@@ -67,7 +71,7 @@ async def trainRouteClient():
         Load_Prod_Model_obj.load_production_model()
 
     except Exception as e:
-        return Response("Error Occurred! %s" % e)
+        return Response(f"Error Occurred!{e}")
 
     return Response("Training successfull!!")
 
@@ -77,13 +81,9 @@ async def predictRouteClient():
     try:
         raw_data_pred_container_name = config["container"]["scania_raw_data_container"]
 
-        table_obj = create_log_table()
-
-        table_obj.generate_log_tables(type="pred")
-
         pred_val = Pred_Validation(raw_data_pred_container_name)
 
-        pred_val.Prediction_validation()
+        pred_val.prediction_validation()
 
         pred = Prediction()
 
@@ -94,7 +94,7 @@ async def predictRouteClient():
         )
 
     except Exception as e:
-        return Response("Error Occurred! %s" % e)
+        return Response(f"Error Occurred! {e}")
 
 
 if __name__ == "__main__":
