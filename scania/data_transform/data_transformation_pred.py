@@ -3,7 +3,7 @@ from utils.logger import App_Logger
 from utils.read_params import read_params
 
 
-class data_transform_pred:
+class Data_Transform_Pred:
     """
     Description : This class shall be used for transforming the Prediction batch data before loading it in Database!!.
 
@@ -47,20 +47,19 @@ class data_transform_pred:
         )
 
         try:
-            lst = self.blob.read_csv(
-                container=self.pred_data_container,
-                file_name=self.good_pred_data_dir,
+            lst = self.blob.read_csv_from_folder(
+                folder_name=self.good_pred_data_dir,
+                container_name=self.pred_data_container,
                 db_name=self.db_name,
                 collection_name=self.pred_data_transform_log,
-                folder=True,
             )
 
-            for idx, t_pdf in enumerate(lst):
-                df = t_pdf[idx][1]
+            for t_pdf in lst:
+                df = t_pdf[1]
 
-                file = t_pdf[idx][2]
+                file = t_pdf[2]
 
-                abs_f = t_pdf[idx][3]
+                abs_f = t_pdf[3]
 
                 df["class"] = df["class"].apply(lambda x: "'" + str(x) + "'")
 
@@ -77,10 +76,10 @@ class data_transform_pred:
                 )
 
                 self.blob.upload_df_as_csv(
-                    data_frame=df,
-                    file_name=abs_f,
-                    container=self.pred_data_container,
-                    dest_file_name=file,
+                    dataframe=df,
+                    local_file_name=abs_f,
+                    container_file_name=file,
+                    container_name=self.pred_data_container,
                     db_name=self.db_name,
                     collection_name=self.pred_data_transform_log,
                 )
