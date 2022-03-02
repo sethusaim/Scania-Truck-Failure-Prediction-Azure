@@ -4,7 +4,7 @@
 This is an end to end machine learning system with MLFlow integration for predicting the quality of wafer sensors.
 
 ## Demo
-- AWS Link - http://3.216.31.92:8080/ (not avaiable)
+- Azure Link - http://3.216.31.92:8080/ (not avaiable)
 
 ## Table of Contents
 - Problem Statement
