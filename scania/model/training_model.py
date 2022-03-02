@@ -2,7 +2,7 @@ import mlflow
 from scania.data_ingestion.data_loader_train import data_getter_train
 from scania.data_preprocessing.clustering import kmeans_clustering
 from scania.data_preprocessing.preprocessing import preprocessor
-from scania.mlflow_utils.mlflow_operations import mlflow_operations
+from scania.mlflow_utils.MLFlow_Operation import MLFlow_Operation
 from scania.model_finder.tuner import model_finder
 from scania.container_operations.blob_operation import blob_operation
 from sklearn.model_selection import train_test_split
@@ -41,7 +41,7 @@ class train_model:
 
         self.class_name = self.__class__.__name__
 
-        self.mlflow_op = mlflow_operations(collection_name=self.model_train_log)
+        self.mlflow_op = MLFlow_Operation(collection_name=self.model_train_log)
 
         self.data_getter_train_obj = data_getter_train(
             collection_name=self.model_train_log

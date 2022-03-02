@@ -1,4 +1,4 @@
-from scania.mlflow_utils.mlflow_operations import mlflow_operations
+from scania.mlflow_utils.MLFlow_Operation import MLFlow_Operation
 from utils.logger import app_logger
 from utils.read_params import read_params
 
@@ -26,7 +26,7 @@ class Load_Prod_Model:
 
         self.exp_name = self.config["mlflow_config"]["experiment_name"]
 
-        self.mlflow_op = mlflow_operations(collection_name=self.Load_Prod_Model_log)
+        self.mlflow_op = MLFlow_Operation(collection_name=self.Load_Prod_Model_log)
 
     def load_production_model(self):
         """

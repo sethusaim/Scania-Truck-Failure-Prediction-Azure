@@ -2,13 +2,13 @@ import os
 
 import mlflow
 from mlflow.tracking import MlflowClient
-from scania.container_operations.blob_operation import blob_operation
-from utils.logger import app_logger
-from utils.model_utils import get_model_name
+from scania.blob_storage_operations.blob_operations import Blob_Operation
+from utils.logger import App_Logger
+from utils.model_utils import Model_Utils
 from utils.read_params import read_params
 
 
-class mlflow_operations:
+class MLFlow_Operation:
     """
     Description :    This class shall be used for handling all the mlflow operations
 
@@ -16,16 +16,20 @@ class mlflow_operations:
     Revisions   :    moved to setup to cloud
     """
 
-    def __init__(self, collection_name):
+    def __init__(self, db_name, collection_name):
         self.config = read_params()
 
         self.class_name = self.__class__.__name__
 
-        self.log_writer = app_logger()
+        self.log_writer = App_Logger()
 
-        self.blob = blob_operation()
+        self.blob = Blob_Operation()
+
+        self.db_name = db_name
 
         self.collection_name = collection_name
+
+        self.model_utils = Model_Utils()
 
         self.mlflow_save_format = self.config["mlflow_config"]["serialization_format"]
 
@@ -51,6 +55,7 @@ class mlflow_operations:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
@@ -58,6 +63,7 @@ class mlflow_operations:
             exp = mlflow.get_experiment_by_name(name=exp_name)
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"Got {exp_name} experiment from mlflow",
             )
@@ -66,6 +72,7 @@ class mlflow_operations:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -76,6 +83,7 @@ class mlflow_operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -93,6 +101,7 @@ class mlflow_operations:
             key="exit",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
@@ -100,6 +109,7 @@ class mlflow_operations:
             runs = mlflow.search_runs(experiment_ids=exp_id)
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"Completed searchiing for runs in mlflow with experiment ids as {exp_id}",
             )
@@ -108,6 +118,7 @@ class mlflow_operations:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -118,6 +129,7 @@ class mlflow_operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -135,6 +147,7 @@ class mlflow_operations:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
@@ -142,6 +155,7 @@ class mlflow_operations:
             mlflow.set_experiment(experiment_name=experiment_name)
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"Set mlflow experiment with name as {experiment_name}",
             )
@@ -150,6 +164,7 @@ class mlflow_operations:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -158,6 +173,7 @@ class mlflow_operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -175,6 +191,7 @@ class mlflow_operations:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
@@ -182,14 +199,16 @@ class mlflow_operations:
             client = MlflowClient(tracking_uri=server_uri)
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_info=f"Got mlflow client with tracking uri",
+                log_info="Got mlflow client with tracking uri",
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -200,6 +219,7 @@ class mlflow_operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -217,6 +237,7 @@ class mlflow_operations:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
@@ -224,13 +245,16 @@ class mlflow_operations:
             remote_server_uri = os.environ["MLFLOW_TRACKING_URI"]
 
             self.log_writer.log(
-                collection_name=self.collection_name, log_info="Got mlflow tracking uri"
+                db_name=self.db_name,
+                collection_name=self.collection_name,
+                log_info="Got mlflow tracking uri",
             )
 
             self.log_writer.start_log(
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -241,6 +265,7 @@ class mlflow_operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -258,6 +283,7 @@ class mlflow_operations:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
@@ -267,6 +293,7 @@ class mlflow_operations:
             mlflow.set_tracking_uri(server_uri)
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"Set mlflow tracking uri to {server_uri}",
             )
@@ -275,6 +302,7 @@ class mlflow_operations:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -283,6 +311,7 @@ class mlflow_operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -300,6 +329,7 @@ class mlflow_operations:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
@@ -311,6 +341,7 @@ class mlflow_operations:
             reg_model_names = [rm.name for rm in client.list_registered_models()]
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info="Got registered model from mlflow",
             )
@@ -319,6 +350,7 @@ class mlflow_operations:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -329,6 +361,7 @@ class mlflow_operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -346,6 +379,7 @@ class mlflow_operations:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
@@ -357,6 +391,7 @@ class mlflow_operations:
             results = client.search_registered_models(order_by=[f"name {order}"])
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"Got registered models in mlflow in {order} order",
             )
@@ -365,6 +400,7 @@ class mlflow_operations:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -375,6 +411,7 @@ class mlflow_operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -392,6 +429,7 @@ class mlflow_operations:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
@@ -404,6 +442,7 @@ class mlflow_operations:
             )
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"Logged {model_name} in mlflow",
             )
@@ -412,6 +451,7 @@ class mlflow_operations:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -420,6 +460,7 @@ class mlflow_operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -437,6 +478,7 @@ class mlflow_operations:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
@@ -444,6 +486,7 @@ class mlflow_operations:
             mlflow.log_metric(key=model_name + "-best_score", value=metric)
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=model_name + "-best score logged in mlflow",
             )
@@ -452,6 +495,7 @@ class mlflow_operations:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -460,6 +504,7 @@ class mlflow_operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -477,6 +522,7 @@ class mlflow_operations:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
@@ -486,6 +532,7 @@ class mlflow_operations:
             mlflow.log_param(key=name, value=model.__dict__[param])
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"{name} logged in mlflow",
             )
@@ -494,6 +541,7 @@ class mlflow_operations:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -502,6 +550,7 @@ class mlflow_operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -520,16 +569,18 @@ class mlflow_operations:
                 key="start",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
-            base_model_name = get_model_name(
+            base_model_name = self.model_utils.get_model_name(
                 model=model, collection_name=self.collection_name
             )
 
             model_name = base_model_name + str(idx)
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"Got the model name as {model_name}",
             )
@@ -539,6 +590,7 @@ class mlflow_operations:
             )
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"Created a list of params based on {model_param_name}",
             )
@@ -559,6 +611,7 @@ class mlflow_operations:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -567,6 +620,7 @@ class mlflow_operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -585,6 +639,7 @@ class mlflow_operations:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
+            db_name=self.db_name,
             collection_name=self.collection_name,
         )
 
@@ -594,6 +649,7 @@ class mlflow_operations:
             current_version = model_version
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info=f"Got {current_version} as the current model version",
             )
@@ -609,12 +665,14 @@ class mlflow_operations:
             prod_model_file = self.prod_models_dir + "/" + model
 
             self.log_writer.log(
+                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info="Created trained,stag and prod model files",
             )
 
             if stage == "Production":
                 self.log_writer.log(
+                    db_name=self.db_name,
                     collection_name=self.collection_name,
                     log_info=f"{stage} is selected for transition",
                 )
@@ -624,20 +682,23 @@ class mlflow_operations:
                 )
 
                 self.log_writer.log(
+                    db_name=self.db_name,
                     collection_name=self.collection_name,
                     log_info=f"Transitioned {model_name} to {stage} in mlflow",
                 )
 
                 self.blob.copy_data(
-                    src_container=container,
-                    src_file=trained_model_file,
-                    dest_container=container,
-                    dest_file=prod_model_file,
-                    collection_name=self.collection_name,
+                    from_file_name=trained_model_file,
+                    from_container_name=container,
+                    to_file_name=prod_model_file,
+                    to_container_name=container,
+                    db_name=self.db_name,
+                    collection_name=self.collection_name
                 )
 
             elif stage == "Staging":
                 self.log_writer.log(
+                    db_name=self.db_name,
                     collection_name=self.collection_name,
                     log_info=f"{stage} is selected for transition",
                 )
@@ -647,20 +708,23 @@ class mlflow_operations:
                 )
 
                 self.log_writer.log(
+                    db_name=self.db_name,
                     collection_name=self.collection_name,
                     log_info=f"Transitioned {model_name} to {stage} in mlflow",
                 )
 
                 self.blob.copy_data(
-                    src_container=container,
-                    src_file=trained_model_file,
-                    dest_container=container,
-                    dest_file=stag_model_file,
-                    collection_name=self.collection_name,
+                    from_file_name=trained_model_file,
+                    from_container_name=container,
+                    to_file_name=stag_model_file,
+                    to_container_name=container,
+                    db_name=self.db_name,
+                    collection_name=self.collection_name
                 )
 
             else:
                 self.log_writer.log(
+                    db_name=self.db_name,
                     collection_name=self.collection_name,
                     log_info="Please select stage for model transition",
                 )
@@ -669,6 +733,7 @@ class mlflow_operations:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
 
@@ -677,5 +742,6 @@ class mlflow_operations:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
+                db_name=self.db_name,
                 collection_name=self.collection_name,
             )
