@@ -1,5 +1,5 @@
 from scania.data_transform.data_transformation_train import Data_Transform_Train
-from scania.data_type_valid.data_type_valid_train import db_operation_train
+from scania.data_type_valid.data_type_valid_train import DB_Operation_Train
 from scania.raw_data_validation.train_data_validation import raw_train_data_validation
 from utils.logger import app_logger
 from utils.read_params import read_params
@@ -20,7 +20,7 @@ class Train_Validation:
 
         self.data_transform = Data_Transform_Train()
 
-        self.db_operation = db_operation_train()
+        self.db_operation = DB_Operation_Train()
 
         self.config = read_params()
 
