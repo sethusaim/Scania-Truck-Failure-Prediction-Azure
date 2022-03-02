@@ -21,15 +21,17 @@ class MLFlow_Operation:
 
         self.class_name = self.__class__.__name__
 
-        self.log_writer = App_Logger()
-
-        self.blob = Blob_Operation()
-
         self.db_name = db_name
 
         self.collection_name = collection_name
 
-        self.model_utils = Model_Utils()
+        self.log_writer = App_Logger()
+
+        self.model_utils = Model_Utils(
+            db_name=self.db_name, collection_name=self.collection_name
+        )
+
+        self.blob = Blob_Operation()
 
         self.mlflow_save_format = self.config["mlflow_config"]["serialization_format"]
 
@@ -98,7 +100,7 @@ class MLFlow_Operation:
         method_name = self.get_runs_from_mlflow.__name__
 
         self.log_writer.start_log(
-            key="exit",
+            key="start",
             class_name=self.class_name,
             method_name=method_name,
             db_name=self.db_name,
@@ -201,7 +203,7 @@ class MLFlow_Operation:
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_info="Got mlflow client with tracking uri",
+                log_info=f"Got mlflow client with tracking uri",
             )
 
             self.log_writer.start_log(
@@ -245,7 +247,6 @@ class MLFlow_Operation:
             remote_server_uri = os.environ["MLFLOW_TRACKING_URI"]
 
             self.log_writer.log(
-                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info="Got mlflow tracking uri",
             )
@@ -293,9 +294,8 @@ class MLFlow_Operation:
             mlflow.set_tracking_uri(server_uri)
 
             self.log_writer.log(
-                db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_info=f"Set mlflow tracking uri to {server_uri}",
+                log_info="Set mlflow tracking uri",
             )
 
             self.log_writer.start_log(
@@ -341,7 +341,6 @@ class MLFlow_Operation:
             reg_model_names = [rm.name for rm in client.list_registered_models()]
 
             self.log_writer.log(
-                db_name=self.db_name,
                 collection_name=self.collection_name,
                 log_info="Got registered model from mlflow",
             )
@@ -442,9 +441,8 @@ class MLFlow_Operation:
             )
 
             self.log_writer.log(
-                db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_info=f"Logged {model_name} in mlflow",
+                log_info=f"Logged {model_name} model in mlflow",
             )
 
             self.log_writer.start_log(
@@ -483,12 +481,13 @@ class MLFlow_Operation:
         )
 
         try:
-            mlflow.log_metric(key=model_name + "-best_score", value=metric)
+            model_score_name = f"{model_name}-best_score"
+
+            mlflow.log_metric(key=model_score_name, value=metric)
 
             self.log_writer.log(
-                db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_info=model_name + "-best score logged in mlflow",
+                log_info=f"{model_score_name} logged in mlflow",
             )
 
             self.log_writer.start_log(
@@ -527,14 +526,13 @@ class MLFlow_Operation:
         )
 
         try:
-            name = model_name + str(idx) + f"-{param}"
+            model_param_name = model_name + str(idx) + f"-{param}"
 
-            mlflow.log_param(key=name, value=model.__dict__[param])
+            mlflow.log_param(key=model_param_name, value=model.__dict__[param])
 
             self.log_writer.log(
-                db_name=self.db_name,
                 collection_name=self.collection_name,
-                log_info=f"{name} logged in mlflow",
+                log_info=f"{model_param_name} logged in mlflow",
             )
 
             self.log_writer.start_log(
@@ -573,39 +571,39 @@ class MLFlow_Operation:
                 collection_name=self.collection_name,
             )
 
-            base_model_name = self.model_utils.get_model_name(
-                model=model, collection_name=self.collection_name
-            )
+            base_model_name = self.model_utils.get_model_name(model=model)
 
-            model_name = base_model_name + str(idx)
+            if base_model_name is "KMeans":
+                self.log_model(model=model, model_name=base_model_name)
 
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-                log_info=f"Got the model name as {model_name}",
-            )
+            else:
+                model_name = base_model_name + str(idx)
 
-            model_params_list = list(
-                self.config["model_params"][model_param_name].keys()
-            )
-
-            self.log_writer.log(
-                db_name=self.db_name,
-                collection_name=self.collection_name,
-                log_info=f"Created a list of params based on {model_param_name}",
-            )
-
-            for param in model_params_list:
-                self.log_param(
-                    idx=idx,
-                    model=model,
-                    model_name=model_name,
-                    param=param,
+                self.log_writer.log(
+                    collection_name=self.collection_name,
+                    log_info=f"Got the model name as {model_name}",
                 )
 
-            self.log_model(model=model, model_name=model_name)
+                model_params_list = list(
+                    self.config["model_params"][model_param_name].keys()
+                )
 
-            self.log_metric(model_name=model_name, metric=float(model_score))
+                self.log_writer.log(
+                    collection_name=self.collection_name,
+                    log_info=f"Created a list of params based on {model_param_name}",
+                )
+
+                for param in model_params_list:
+                    self.log_param(
+                        idx=idx,
+                        model=model,
+                        model_name=model_name,
+                        param=param,
+                    )
+
+                self.log_model(model=model, model_name=model_name)
+
+                self.log_metric(model_name=model_name, metric=float(model_score))
 
             self.log_writer.start_log(
                 key="exit",
@@ -624,7 +622,9 @@ class MLFlow_Operation:
                 collection_name=self.collection_name,
             )
 
-    def transition_mlflow_model(self, model_version, stage, model_name, container_name):
+    def transition_mlflow_model(
+        self, model_version, stage, model_name, from_container_name, to_container_name
+    ):
         """
         Method Name :   transition_mlflow_model
         Description :   This method transitions the models in mlflow and as well as in blob container based on
@@ -656,13 +656,17 @@ class MLFlow_Operation:
 
             client = self.get_mlflow_client(server_uri=remote_server_uri)
 
-            model = model_name + self.model_save_format
+            trained_model_file = (
+                self.trained_models_dir + "/" + model_name + self.model_save_format
+            )
 
-            trained_model_file = self.trained_models_dir + "/" + model
+            stag_model_file = (
+                self.staged_models_dir + "/" + model_name + self.model_save_format
+            )
 
-            stag_model_file = self.staged_models_dir + "/" + model
-
-            prod_model_file = self.prod_models_dir + "/" + model
+            prod_model_file = (
+                self.prod_models_dir + "/" + model_name + self.model_save_format
+            )
 
             self.log_writer.log(
                 db_name=self.db_name,
@@ -689,16 +693,15 @@ class MLFlow_Operation:
 
                 self.blob.copy_data(
                     from_file_name=trained_model_file,
-                    from_container_name=container_name,
+                    from_container_name=from_container_name,
                     to_file_name=prod_model_file,
-                    to_container_name=container_name,
+                    to_container_name=to_container_name,
                     db_name=self.db_name,
                     collection_name=self.collection_name,
                 )
 
             elif stage == "Staging":
                 self.log_writer.log(
-                    db_name=self.db_name,
                     collection_name=self.collection_name,
                     log_info=f"{stage} is selected for transition",
                 )
@@ -708,16 +711,15 @@ class MLFlow_Operation:
                 )
 
                 self.log_writer.log(
-                    db_name=self.db_name,
                     collection_name=self.collection_name,
                     log_info=f"Transitioned {model_name} to {stage} in mlflow",
                 )
 
                 self.blob.copy_data(
                     from_file_name=trained_model_file,
-                    from_container_name=container_name,
+                    from_container_name=from_container_name,
                     to_file_name=stag_model_file,
-                    to_container_name=container_name,
+                    to_container_name=to_container_name,
                     db_name=self.db_name,
                     collection_name=self.collection_name,
                 )

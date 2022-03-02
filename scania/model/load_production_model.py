@@ -1,3 +1,4 @@
+from scania.blob_storage_operations.blob_operations import Blob_Operation
 from scania.mlflow_utils.mlflow_operations import MLFlow_Operation
 from utils.logger import App_Logger
 from utils.read_params import read_params
@@ -7,8 +8,8 @@ class Load_Prod_Model:
     """
     Description :   This class shall be used for loading the production model
     Written by  :   iNeuron Intelligence
-    Version     :   1.0
-    Revisions   :   None
+    Version     :   1.2
+    Revisions   :   Moved to setup to cloud
     """
 
     def __init__(self, num_clusters):
@@ -20,17 +21,21 @@ class Load_Prod_Model:
 
         self.num_clusters = num_clusters
 
-        self.model_container = self.config["container"]["scania_model"]
+        self.db_name = self.config["db_log"]["train_db_log"]
 
-        self.db_name = self.config["db_log"]["train"]
+        self.model_container = self.config["container"]["model"]
 
-        self.load_prod_model_log = self.config["train_db_log"]["load_prod_model"]
+        self.load_prod_model_log = self.config["train_db_log"]["Load_Prod_Model"]
+
+        self.prod_model_dir = self.config["models_dir"]["prod"]
+
+        self.stag_model_dir = self.config["models_dir"]["stag"]
 
         self.exp_name = self.config["mlflow_config"]["experiment_name"]
 
-        self.mlflow_op = MLFlow_Operation(
-            db_name=self.db_name, collection_name=self.load_prod_model_log
-        )
+        self.blob = Blob_Operation()
+
+        self.mlflow_op = MLFlow_Operation(table_name=self.load_prod_model_log)
 
     def load_production_model(self):
         """
@@ -137,7 +142,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.load_prod_model_log,
-                log_info=f"Got top model names based on the metrics of clusters",
+                log_info="Got top model names based on the metrics of clusters",
             )
 
             ## best_metrics will store the value of metrics, but we want the names of the models,
@@ -152,7 +157,7 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
             self.log_writer.log(
                 db_name=self.db_name,
                 collection_name=self.load_prod_model_log,
-                log_info=f"Got the top model names",
+                log_info="Got the top model names",
             )
 
             results = self.mlflow_op.search_mlflow_models(order="DESC")
@@ -169,10 +174,11 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             model_version=mv.version,
                             stage="Production",
                             model_name=mv.name,
-                            container_name=self.model_container,
+                            from_container_name=self.model_container,
+                            to_container_name=self.model_container,
                         )
 
-                    ## In the registered models, even kmeans model is present, so during Prediction,
+                    ## In the registered models, even kmeans model is present, so during prediction,
                     ## this model also needs to be in present in production, the code logic is present below
 
                     elif mv.name == "KMeans":
@@ -180,7 +186,8 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             model_version=mv.version,
                             stage="Production",
                             model_name=mv.name,
-                            container_name=self.model_container,
+                            from_container_name=self.model_container,
+                            to_container_name=self.model_container,
                         )
 
                     else:
@@ -188,7 +195,8 @@ run_number  metrics.XGBoost0-best_score metrics.RandomForest1-best_score metrics
                             model_version=mv.version,
                             stage="Staging",
                             model_name=mv.name,
-                            container=self.model_container,
+                            from_container_name=self.model_container,
+                            to_container_name=self.model_container,
                         )
 
             self.log_writer.log(

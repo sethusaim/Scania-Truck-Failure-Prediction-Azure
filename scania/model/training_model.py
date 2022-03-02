@@ -50,15 +50,15 @@ class Train_Model:
             db_name=self.db_name, collection_name=self.model_train_log
         )
 
-        self.data_getter_train_obj = Data_Getter_Train(
+        self.data_getter_train = Data_Getter_Train(
             db_name=self.db_name, collection_name=self.model_train_log
         )
 
-        self.preprocessor_obj = Preprocessor(
+        self.preprocessor = Preprocessor(
             db_name=self.db_name, collection_name=self.model_train_log
         )
 
-        self.kmeans_obj = KMeans_Clustering(
+        self.kmeans_op = KMeans_Clustering(
             db_name=self.db_name, collection_name=self.model_train_log
         )
 
@@ -88,32 +88,45 @@ class Train_Model:
         )
 
         try:
-            data = self.data_getter_train_obj.get_data()
+            df = self.data_getter_train.get_data()
 
-            data = self.preprocessor_obj.remove_columns(data, ["scania"])
+            df = self.preprocessor.replace_invalid_values(data=df)
 
-            X, Y = self.preprocessor_obj.separate_label_feature(
-                data, label_column_name=self.target_col
-            )
+            df = self.preprocessor.encode_target_cols(data=df)
 
-            is_null_present = self.preprocessor_obj.is_null_present(X)
+            is_null_present = self.preprocessor.is_null_present(data=df)
 
             if is_null_present:
-                X = self.preprocessor_obj.impute_missing_values(X)
+                df = self.preprocessor.impute_missing_values(data=df)
 
-            cols_to_drop = self.preprocessor_obj.get_columns_with_zero_std_deviation(X)
+            X, Y = self.preprocessor.separate_label_feature(
+                data=df, label_column_name=self.target_col
+            )
 
-            X = self.preprocessor_obj.remove_columns(X, cols_to_drop)
+            cols_to_drop = self.preprocessor.get_columns_with_zero_std_deviation(
+                data=df
+            )
 
-            number_of_clusters = self.kmeans_obj.elbow_plot(X)
+            X = self.preprocessor.remove_columns(data=df, columns=cols_to_drop)
 
-            X, kmeans_model = self.kmeans_obj.create_clusters(
+            X = self.preprocessor.scale_numerical_columns(data=df)
+
+            X = self.preprocessor.apply_pca_transform(X_scaled_data=X)
+
+            number_of_clusters = self.kmeans_op.elbow_plot(X)
+
+            X, kmeans_model = self.kmeans_op.create_clusters(
                 data=X, number_of_clusters=number_of_clusters
             )
 
             X["Labels"] = Y
 
             list_of_clusters = X["Cluster"].unique()
+
+            self.log_writer.log(
+                table_name=self.model_train_log,
+                log_info="Got unique list of clusters",
+            )
 
             for i in list_of_clusters:
                 cluster_data = X[X["Cluster"] == i]

@@ -16,17 +16,19 @@ class Preprocessor:
     """
 
     def __init__(self, db_name, collection_name):
-        self.log_writer = App_Logger()
-
-        self.model_utils = Model_Utils()
-
         self.config = read_params()
-
-        self.class_name = self.__class__.__name__
 
         self.db_name = db_name
 
         self.collection_name = collection_name
+
+        self.log_writer = App_Logger()
+
+        self.model_utils = Model_Utils(
+            db_name=self.db_name, collection_name=self.collection_name
+        )
+
+        self.class_name = self.__class__.__name__
 
         self.null_values_file = self.config["null_values_csv_file"]
 
@@ -399,9 +401,7 @@ class Preprocessor:
 
             pca = PCA(n_components=self.n_components)
 
-            pca_model_name = self.model_utils.get_model_name(
-                model=pca, db_name=self.db_name, collection_name=self.collection_name
-            )
+            pca_model_name = self.model_utils.get_model_name(model=pca)
 
             self.log_writer.log(
                 db_name=self.db_name,

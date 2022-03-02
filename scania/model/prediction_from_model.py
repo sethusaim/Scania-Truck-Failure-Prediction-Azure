@@ -191,14 +191,22 @@ class Prediction:
 
             data = self.data_getter_pred.get_data()
 
-            is_null_present = self.preprocessor.is_null_present(data)
+            data = self.preprocessor.replace_invalid_values(data=data)
+
+            is_null_present = self.preprocessor.is_null_present(data=data)
 
             if is_null_present:
-                data = self.preprocessor.impute_missing_values(data)
+                data = self.preprocessor.impute_missing_values(data=data)
 
-            cols_to_drop = self.preprocessor.get_columns_with_zero_std_deviation(data)
+            cols_to_drop = self.preprocessor.get_columns_with_zero_std_deviation(
+                data=data
+            )
 
-            data = self.preprocessor.remove_columns(data, cols_to_drop)
+            X = self.preprocessor.remove_columns(data=data, columns=cols_to_drop)
+
+            X = self.preprocessor.scale_numerical_columns(data=data)
+
+            X = self.preprocessor.apply_pca_transform(X_scaled_data=X)
 
             kmeans = self.blob.load_model(
                 model_name="KMeans",
@@ -208,13 +216,13 @@ class Prediction:
                 collection_name=self.pred_log,
             )
 
-            clusters = kmeans.predict(data.drop(["scania"], axis=1))
+            clusters = kmeans.predict(data)
 
             data["clusters"] = clusters
 
-            clusters = data["clusters"].unique()
+            unique_clusters = data["clusters"].unique()
 
-            for i in clusters:
+            for i in unique_clusters:
                 cluster_data = data[data["clusters"] == i]
 
                 phising_names = list(cluster_data["scania"])

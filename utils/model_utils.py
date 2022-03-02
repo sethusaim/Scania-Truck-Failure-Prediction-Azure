@@ -6,14 +6,18 @@ from utils.read_params import read_params
 
 
 class Model_Utils:
-    def __init__(self):
+    def __init__(self, db_name, collection_name):
         self.log_writer = App_Logger()
 
         self.config = read_params()
 
+        self.db_name = db_name
+
+        self.collection_name = collection_name
+
         self.class_name = self.__class__.__name__
 
-    def get_model_name(self, model, db_name, collection_name):
+    def get_model_name(self, model):
         """
         Method Name :   get_model_name
         Description :   This method is used for getting the actual model name
@@ -27,16 +31,16 @@ class Model_Utils:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            db_name=db_name,
-            collection_name=collection_name,
+            db_name=self.db_name,
+            collection_name=self.collection_name,
         )
 
         try:
             model_name = model.__class__.__name__
 
             self.log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
                 log_info=f"Got the {model} model_name",
             )
 
@@ -44,8 +48,8 @@ class Model_Utils:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             return model_name
@@ -55,11 +59,11 @@ class Model_Utils:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
-    def get_model_param_grid(self, model_key_name, db_name, collection_name):
+    def get_model_param_grid(self, model_key_name):
         """
         Method Name :   get_model_param_grid
         Description :   This method is used for getting the param dict from params.yaml file
@@ -73,8 +77,8 @@ class Model_Utils:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            db_name=db_name,
-            collection_name=collection_name,
+            db_name=self.db_name,
+            collection_name=self.collection_name,
         )
 
         try:
@@ -90,8 +94,8 @@ class Model_Utils:
                 model_grid[param] = model_param_name[param]
 
             self.log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
                 log_info=f"Inserted {model_key_name} params to model_grid dict",
             )
 
@@ -99,8 +103,8 @@ class Model_Utils:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             return model_grid
@@ -110,11 +114,11 @@ class Model_Utils:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
-    def get_model_score(self, model, test_x, test_y, db_name, collection_name):
+    def get_model_score(self, model, test_x, test_y):
         """
         Method Name :   get_model_score
         Description :   This method is used for calculating the best score for the model based on the test data
@@ -128,20 +132,20 @@ class Model_Utils:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            db_name=db_name,
-            collection_name=collection_name,
+            db_name=self.db_name,
+            collection_name=self.collection_name,
         )
 
         try:
             model_name = self.get_model_name(
-                model=model, db_name=db_name, collection_name=collection_name
+                model=model, db_name=self.db_name, collection_name=self.collection_name
             )
 
             preds = model.predict(test_x)
 
             self.log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
                 log_info=f"Used {model_name} model to get predictions on test data",
             )
 
@@ -149,8 +153,8 @@ class Model_Utils:
                 model_score = accuracy_score(test_y, preds)
 
                 self.log_writer.log(
-                    db_name=db_name,
-                    collection_name=collection_name,
+                    db_name=self.db_name,
+                    collection_name=self.collection_name,
                     log_info=f"Accuracy for {model_name} is {model_score}",
                 )
 
@@ -158,8 +162,8 @@ class Model_Utils:
                 model_score = roc_auc_score(test_y, preds)
 
                 self.log_writer.log(
-                    db_name=db_name,
-                    collection_name=collection_name,
+                    db_name=self.db_name,
+                    collection_name=self.collection_name,
                     log_info=f"AUC score for {model_name} is {model_score}",
                 )
 
@@ -167,8 +171,8 @@ class Model_Utils:
                     key="exit",
                     class_name=self.class_name,
                     method_name=method_name,
-                    db_name=db_name,
-                    collection_name=collection_name,
+                    db_name=self.db_name,
+                    collection_name=self.collection_name,
                 )
 
             return model_score
@@ -178,13 +182,11 @@ class Model_Utils:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
-    def get_model_params(
-        self, model, model_key_name, x_train, y_train, db_name, collection_name
-    ):
+    def get_model_params(self, model, model_key_name, x_train, y_train):
         """
         Method Name :   get_model_params
         Description :   This method is used for finding the best params for the given model
@@ -198,8 +200,8 @@ class Model_Utils:
             key="start",
             class_name=self.class_name,
             method_name=method_name,
-            db_name=db_name,
-            collection_name=collection_name,
+            db_name=self.db_name,
+            collection_name=self.collection_name,
         )
 
         try:
@@ -209,15 +211,9 @@ class Model_Utils:
 
             n_jobs = self.config["model_utils"]["n_jobs"]
 
-            model_name = self.get_model_name(
-                model=model, db_name=db_name, collection_name=collection_name
-            )
+            model_name = self.get_model_name(model=model)
 
-            model_param_grid = self.get_model_param_grid(
-                model_key_name=model_key_name,
-                db_name=db_name,
-                collection_name=collection_name,
-            )
+            model_param_grid = self.get_model_param_grid(model_key_name=model_key_name)
 
             model_grid = GridSearchCV(
                 estimator=model,
@@ -228,16 +224,16 @@ class Model_Utils:
             )
 
             self.log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
                 log_info=f"Initialized {model_grid.__class__.__name__}  with {model_param_grid} as params",
             )
 
             model_grid.fit(x_train, y_train)
 
             self.log_writer.log(
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
                 log_info=f"Found the best params for {model_name} model based on {model_param_grid} as params",
             )
 
@@ -245,8 +241,8 @@ class Model_Utils:
                 key="exit",
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
 
             return model_grid.best_params_
@@ -256,6 +252,6 @@ class Model_Utils:
                 error=e,
                 class_name=self.class_name,
                 method_name=method_name,
-                db_name=db_name,
-                collection_name=collection_name,
+                db_name=self.db_name,
+                collection_name=self.collection_name,
             )
